@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -29,7 +29,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
       setState(() => _list = res);
     } catch (e) {
-      print('notif err: $e');
+      debugPrint('notif err: $e');
     } finally {
       setState(() => _loading = false);
     }

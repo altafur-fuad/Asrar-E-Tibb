@@ -18,9 +18,9 @@ Future<void> main() async {
       anonKey:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inluc3NxcnBmYmVhdnV5bnhjd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTUwOTgsImV4cCI6MjA3OTEzMTA5OH0.dbgLfkSmqWizHqu_cM2ySPj0eAqpnNT7Nkrygs3Lh8A',
     );
-    print('✅ Supabase initialized successfully');
+    debugPrint('✅ Supabase initialized successfully');
   } catch (e) {
-    print('❌ Supabase initialization failed: $e');
+    debugPrint('❌ Supabase initialization failed: $e');
     // App will still run, but Supabase features won't work
   }
 

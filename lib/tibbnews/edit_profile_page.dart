@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic> initialData;

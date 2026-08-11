@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:csv/csv.dart';
 import '../models/medicine_model.dart';
@@ -8,6 +9,14 @@ import '../models/dosage_form_model.dart';
 import '../models/indication_model.dart';
 
 class DataProvider {
+  // In-memory caches to avoid reading assets on every query
+  static List<Medicine>? _cachedMedicines;
+  static List<Generic>? _cachedGenerics;
+  static List<Manufacturer>? _cachedManufacturers;
+  static List<Indication>? _cachedIndications;
+  static List<DrugClass>? _cachedDrugClasses;
+  static List<DosageForm>? _cachedDosageForms;
+
   // CSV Loader
   static Future<List<List<dynamic>>> _loadCsv(String path) async {
     final rawData = await rootBundle.loadString(path);
@@ -30,37 +39,47 @@ class DataProvider {
 
   // ✅ GENERICS
   static Future<List<Generic>> loadGenerics() async {
+    if (_cachedGenerics != null) return _cachedGenerics!;
     final data = await _loadCsv('assets/data/generic.csv');
     final list = data.skip(1).map((row) => Generic.fromCsv(row)).toList();
-    return _sortWithPreview(list, (g) => g.genericName);
+    _cachedGenerics = _sortWithPreview(list, (g) => g.genericName);
+    return _cachedGenerics!;
   }
 
   // ✅ INDICATIONS
   static Future<List<Indication>> loadIndications() async {
+    if (_cachedIndications != null) return _cachedIndications!;
     final data = await _loadCsv('assets/data/indication.csv');
     final list = data.skip(1).map((row) => Indication.fromCsv(row)).toList();
-    return _sortWithPreview(list, (i) => i.indicationName);
+    _cachedIndications = _sortWithPreview(list, (i) => i.indicationName);
+    return _cachedIndications!;
   }
 
   // ✅ MANUFACTURERS
   static Future<List<Manufacturer>> loadManufacturers() async {
+    if (_cachedManufacturers != null) return _cachedManufacturers!;
     final data = await _loadCsv('assets/data/manufacturer.csv');
     final list = data.skip(1).map((row) => Manufacturer.fromCsv(row)).toList();
-    return _sortWithPreview(list, (m) => m.manufacturerName);
+    _cachedManufacturers = _sortWithPreview(list, (m) => m.manufacturerName);
+    return _cachedManufacturers!;
   }
 
   // ✅ DRUG CLASSES
   static Future<List<DrugClass>> loadDrugClasses() async {
+    if (_cachedDrugClasses != null) return _cachedDrugClasses!;
     final data = await _loadCsv('assets/data/drug_class.csv');
     final list = data.skip(1).map((row) => DrugClass.fromCsv(row)).toList();
-    return _sortWithPreview(list, (d) => d.drugClassName);
+    _cachedDrugClasses = _sortWithPreview(list, (d) => d.drugClassName);
+    return _cachedDrugClasses!;
   }
 
   // ✅ DOSAGE FORMS
   static Future<List<DosageForm>> loadDosageForms() async {
+    if (_cachedDosageForms != null) return _cachedDosageForms!;
     final data = await _loadCsv('assets/data/dosage_form.csv');
     final list = data.skip(1).map((row) => DosageForm.fromCsv(row)).toList();
-    return _sortWithPreview(list, (f) => f.dosageFormName);
+    _cachedDosageForms = _sortWithPreview(list, (f) => f.dosageFormName);
+    return _cachedDosageForms!;
   }
 
   // ✅ MEDICINES (Linked filters for Generic, Manufacturer, Indication, Drug Class)
@@ -73,23 +92,17 @@ class DataProvider {
     String? dosageForm,
   }) async {
     try {
-      // Load all CSVs
-      final medData = await _loadCsv('assets/data/medicine.csv');
-      final genericData = await _loadCsv('assets/data/generic.csv');
-      final manufacturerData = await _loadCsv('assets/data/manufacturer.csv');
+      if (_cachedMedicines == null) {
+        final medData = await _loadCsv('assets/data/medicine.csv');
+        _cachedMedicines = medData
+            .skip(1)
+            .map((row) => Medicine.fromCsv(row))
+            .toList();
+      }
 
-      List<Medicine> medicines = medData
-          .skip(1)
-          .map((row) => Medicine.fromCsv(row))
-          .toList();
-      List<Generic> generics = genericData
-          .skip(1)
-          .map((row) => Generic.fromCsv(row))
-          .toList();
-      List<Manufacturer> manufacturers = manufacturerData
-          .skip(1)
-          .map((row) => Manufacturer.fromCsv(row))
-          .toList();
+      List<Medicine> medicines = List.from(_cachedMedicines!);
+      final generics = await loadGenerics();
+      final manufacturers = await loadManufacturers();
 
       // ✅ Generic filter
       if (generic != null && generic.isNotEmpty) {
@@ -111,7 +124,6 @@ class DataProvider {
           ),
         );
 
-        // ধরে নিচ্ছি genericsCount == generic.id (one-to-one relation)
         if (selectedManufacturer.genericsCount > 0) {
           final relatedGenerics = generics
               .where((g) => g.id == selectedManufacturer.genericsCount)
@@ -128,7 +140,6 @@ class DataProvider {
                 )
                 .toList();
           } else {
-            // fallback: match by manufacturer name
             medicines = medicines
                 .where(
                   (m) =>
@@ -138,7 +149,6 @@ class DataProvider {
                 .toList();
           }
         } else {
-          // fallback: direct manufacturer name
           medicines = medicines
               .where(
                 (m) =>
@@ -206,7 +216,7 @@ class DataProvider {
 
       return medicines;
     } catch (e) {
-      print('⚠️ Error in loadMedicines(): $e');
+      debugPrint('⚠️ Error in loadMedicines(): $e');
       return [];
     }
   }

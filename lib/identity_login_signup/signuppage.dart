@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../pages/homepage.dart';
-import '../sevices/supabase_auth_hepler.dart';
+import '../services/supabase_auth_helper.dart';
 import 'loginpage.dart';
 
 class SignUpPage extends StatefulWidget {

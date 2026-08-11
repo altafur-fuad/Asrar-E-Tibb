@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../app_themes.dart';
 
 // adjust these imports to match your project paths
-import '../sevices/supabase_auth_hepler.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_auth_helper.dart';
+import '../services/supabase_services.dart';
 import 'package:asrarpages/identity_login_signup/identityscreen.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
@@ -115,11 +115,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           uploadedUrl = url;
         } else {
           // upload failed — show message but still try to save other fields
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile image upload failed (continuing).'),
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profile image upload failed (continuing).'),
+              ),
+            );
+          }
         }
       }
 
@@ -138,6 +140,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         avatarUrl: uploadedUrl,
       );
 
+      if (!mounted) return;
+
       if (ok) {
         ScaffoldMessenger.of(
           context,
@@ -153,11 +157,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       }
     } catch (e) {
       debugPrint('save profile error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
-      setState(() => saving = false);
+      if (mounted) setState(() => saving = false);
     }
   }
 
@@ -188,15 +194,19 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
+      if (!mounted) return;
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
         (route) => false,
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+      }
     }
   }
 
@@ -225,6 +235,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     if (confirm != true) return;
 
     // Show placeholder — implement actual DB + auth deletion as needed
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Account deletion not implemented.')),
     );

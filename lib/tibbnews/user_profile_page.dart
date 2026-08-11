@@ -4,7 +4,7 @@ import 'package:asrarpages/tibbnews/create_post_page.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 import 'post_card.dart';
 import 'edit_profile_page.dart';
 

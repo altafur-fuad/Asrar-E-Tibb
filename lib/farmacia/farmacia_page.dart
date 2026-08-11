@@ -129,7 +129,7 @@ class _FarmaciaPageState extends State<FarmaciaPage> {
                     ElevatedButton(
                       onPressed: () {
                         if (isInCart) {
-                          cart.removeItem(med.id as Medicine);
+                          cart.removeItem(med);
                         } else {
                           cart.addItem(med);
                         }

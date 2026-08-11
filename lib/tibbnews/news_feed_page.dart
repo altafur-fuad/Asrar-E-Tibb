@@ -1,7 +1,7 @@
 // lib/tibbnews/news_feed_page.dart
 
 import 'package:flutter/material.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 import 'post_card.dart';
 import 'create_post_page.dart'; // ← MUST ADD THIS
 

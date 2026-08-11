@@ -70,7 +70,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading generic info: $e');
+      debugPrint('Error loading generic info: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -82,7 +82,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         await launchUrl(uri);
       }
     } catch (e) {
-      print('Could not launch $url: $e');
+      debugPrint('Could not launch $url: $e');
     }
   }
 

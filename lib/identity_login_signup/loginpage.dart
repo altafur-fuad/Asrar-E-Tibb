@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../sevices/supabase_auth_hepler.dart';
+import '../services/supabase_auth_helper.dart';
 import '../theme_controller.dart';
 import '../pages/homepage.dart';
 import '../admin/adminhomepage.dart';

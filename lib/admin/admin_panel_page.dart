@@ -308,6 +308,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
               );
             } else if (v == "delete") {
               final ok = await _deletePost(p["id"].toString());
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(ok ? "Post deleted" : "Failed to delete"),
@@ -367,6 +368,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           onSelected: (v) async {
             if (v == "delete") {
               final ok = await _deleteComment(c["id"].toString());
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(ok ? "Comment deleted" : "Failed")),
               );

@@ -1,6 +1,6 @@
 // lib/tibbnews/edit_post_page.dart
 
-import 'package:asrarpages/sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

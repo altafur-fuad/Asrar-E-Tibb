@@ -26,6 +26,7 @@ class _IdentitySelectionScreenState extends State<IdentitySelectionScreen> {
   Future<void> _saveRoleAndNavigate(Widget page) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_role', selectedIdentity!);
+    if (!mounted) return;
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 

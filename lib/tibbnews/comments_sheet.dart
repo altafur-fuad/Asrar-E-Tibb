@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 
 class CommentsSheet extends StatefulWidget {
   final String postId;
@@ -119,6 +119,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
 
     if (mounted && success) {
       await _fetchComments();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Comment deleted')),
       );

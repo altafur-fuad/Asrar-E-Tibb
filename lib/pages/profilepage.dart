@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 // ignore: unused_import
-import '../sevices/supabase_auth_hepler.dart';
+import '../services/supabase_auth_helper.dart';
 import '../app_themes.dart';
 import 'profile_settings_page.dart';
 import '../tibbnews/post_card.dart';

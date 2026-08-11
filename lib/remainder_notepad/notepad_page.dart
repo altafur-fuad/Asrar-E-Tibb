@@ -1,7 +1,7 @@
 // lib/notepad/notepad_page.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../sevices/supabase_services.dart';
+import '../services/supabase_services.dart';
 import 'note_editor_page.dart';
 
 class NotepadPage extends StatefulWidget {
@@ -62,6 +62,7 @@ class _NotepadPageState extends State<NotepadPage> {
   Future<void> _deleteNote(Map<String, dynamic> note) async {
     if (_userId == null) return;
     await SupabaseService.deleteNote(note['id'].toString(), _userId!);
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Note deleted')));
