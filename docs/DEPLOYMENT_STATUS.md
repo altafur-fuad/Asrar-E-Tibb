@@ -4,10 +4,11 @@
 
 | Component | Status | Target Environment | Verification Evidence & Link |
 |---|---|---|---|
-| **Git Synchronization** | Fully Synchronized & Clean | Local & GitHub (`feat/web-backend-apk-deployment`) | Matches `origin/feat/web-backend-apk-deployment`. Remote verified up-to-date. |
+| **Medicine Catalog Directory** | Implemented & 100% Tested | Next.js Website (`feat/medicine-catalog-directory`) | 8/8 tests pass; Next.js 14 production build succeeds; 1,711 generic monographs & 21,714 linked medicines integrated. |
+| **Git Synchronization** | Multi-Branch Verified | Local & GitHub (`feat/web-backend-apk-deployment`, `feat/medicine-catalog-directory`) | Separate feature branch created per instructions. Local clean & verified. |
 | **Cloud CI Pipeline** | Passing (100%) | GitHub Actions (`Unified CI Pipeline`) | Run [39611963157](https://github.com/altafur-fuad/Asrar-E-Tibb/actions/runs/39611963157) — Next.js, Rust Axum, and Flutter test suites all passed. |
 | **Android APK Build** | Test Artifact Generated & Verified | GitHub Actions (`Android APK Build & Release`) | Run [39611963159](https://github.com/altafur-fuad/Asrar-E-Tibb/actions/runs/39611963159) — Artifact `asrar-e-tibb-apk-feat-test` (ID: 12351955952). |
-| **Next.js 14 Website** | Production Build & Tests Pass | Vercel (Root: `website/`) | Built successfully with `npm run build` (117 static pages generated). 3/3 automated tests pass. |
+| **Next.js 14 Website** | Production Build & Tests Pass | Vercel (Root: `website/`) | Built successfully with `npm run build` (17 static routes + dynamic routes). 8/8 automated tests pass. |
 | **Rust Axum Backend** | Multi-stage Docker & Blueprint Verified | Render (`backend/api/`) | Multi-stage Dockerfile verified. `render.yaml` configured with verified SHA-256 and release safety checks. |
 | **Flutter Mobile App** | Preserved & Modernized | Android / iOS / Web | All 25 unit and widget tests pass (`flutter test`). Milestone 1 & 2 changes intact. |
 | **Supabase Staging** | Preserved & Isolated | Supabase Cloud (`zhhreesobwvhzmwshaqh`) | Stage 3B bootstrap and audit files intact. Staging admin isolated. |
@@ -121,3 +122,25 @@ As requested, follow these exact step-by-step instructions to deploy to Render a
    - `STORE_PASSWORD`
 2. Run `.github/workflows/android-release.yml` with `publish_release: true` or push a release tag like `v1.0.0`.
 3. In `render.yaml` or Render dashboard, set `APK_AVAILABLE=true`.
+
+---
+
+## 6. Medicine Catalog & Generic Monograph Directory (`feat/medicine-catalog-directory`)
+
+### 6.1 Implementation Highlights
+- **Separate Feature Branch**: `feat/medicine-catalog-directory`.
+- **Data Audit**: Documented in [`docs/MEDICINE_DATA_AUDIT.md`](./MEDICINE_DATA_AUDIT.md). All 21,714 commercial medicines and 1,711 generic monographs audited.
+- **High-Performance Modular Pipeline**: `generics_index.json` (494 KB) + 1,711 isolated monograph JSON files (~5-15 KB each) loaded on demand. Zero build-time heap overflow.
+- **Core Routes**:
+  - `/`: Medicine discovery hero with real-time multi-field search and popular generic shortcut pills.
+  - `/medicines`: Full medicine catalog with multi-dimensional filters (dosage form, manufacturer, drug class).
+  - `/medicines/[id]`: Commercial brand detail with verified dosage form badge, Table of Contents, full linked generic monograph, and like-for-like Alternative Brands.
+  - `/generics/[slug]`: Generic monograph detail with 13 full clinical sections and complete linked commercial brand list.
+- **Safety & Image Rules**:
+  - `sanitizeClinicalHtml`: XSS-safe allowlist HTML sanitizer for clinical descriptions.
+  - `MedicineImageBadge`: Rejects external PDF monograph links and developer portraits; renders SVG dosage form badges and brand monograms.
+  - `getAlternativeBrands`: Matches on generic ID and strictly excludes current medicine.
+
+### 6.2 Test Results
+- `npm test`: **8/8 suites passing** (integrity, foreign keys, alternative brands, HTML sanitization, image protection, news, cart).
+- `npm run build`: **Compiled successfully** (exit code 0).

@@ -17,50 +17,84 @@ import {
   Clock,
   CheckCircle,
   Smartphone,
-  ExternalLink
+  ExternalLink,
+  BookOpen,
+  Filter,
+  SlidersHorizontal,
+  Building2
 } from 'lucide-react';
-import { MedicineCard, Medicine } from '../components/MedicineCard';
+import { MedicineCard } from '../components/MedicineCard';
+import { Medicine } from '../lib/medicines';
 import rawMedicines from '../data/medicines.json';
+import rawFilters from '../data/filters.json';
 
 const medicines: Medicine[] = rawMedicines.slice(0, 8) as Medicine[];
+const filterOptions = rawFilters;
+
+const popularSearches = [
+  'Adalimumab',
+  'Paracetamol',
+  'Omeprazole',
+  'Azithromycin',
+  'Metformin',
+  'Ciprofloxacin',
+  'Amlodipine',
+  'Montelukast'
+];
 
 const categories = [
-  { name: 'Tablets', count: '10,000+ items', icon: Pill, slug: 'tablet', color: '#ECFDF5', text: '#065F46' },
-  { name: 'Syrups & Liquids', count: '3,200+ items', icon: FlaskConical, slug: 'syrup', color: '#E0F2FE', text: '#0369A1' },
-  { name: 'Capsules', count: '2,800+ items', icon: Layers, slug: 'capsule', color: '#FEF3C7', text: '#92400E' },
-  { name: 'Injectables', count: '1,500+ items', icon: Syringe, slug: 'injection', color: '#FEE2E2', text: '#991B1B' },
-  { name: 'Drops & Sprays', count: '850+ items', icon: Droplet, slug: 'drop', color: '#CCFBF1', text: '#115E59' },
-  { name: 'Topicals & Creams', count: '1,100+ items', icon: Sparkles, slug: 'cream', color: '#FEF9C3', text: '#854D0E' },
+  { name: 'Tablets', count: '10,000+ items', icon: Pill, slug: 'Tablet', color: '#ECFDF5', text: '#065F46' },
+  { name: 'Syrups & Liquids', count: '3,200+ items', icon: FlaskConical, slug: 'Syrup', color: '#E0F2FE', text: '#0369A1' },
+  { name: 'Capsules', count: '2,800+ items', icon: Layers, slug: 'Capsule', color: '#FEF3C7', text: '#92400E' },
+  { name: 'Injectables', count: '1,500+ items', icon: Syringe, slug: 'Injection', color: '#FEE2E2', text: '#991B1B' },
+  { name: 'Eye & Nasal Drops', count: '850+ items', icon: Droplet, slug: 'Drops', color: '#CCFBF1', text: '#115E59' },
+  { name: 'Topicals & Creams', count: '1,100+ items', icon: Sparkles, slug: 'Cream', color: '#FEF9C3', text: '#854D0E' },
+];
+
+// Featured clinical generic monographs
+const featuredGenerics = [
+  { name: 'Adalimumab', slug: 'adalimumab-31', drug_class: 'Immunosuppressant / TNF Blocker', indication: 'Rheumatoid Arthritis, Crohn’s Disease, Psoriasis' },
+  { name: 'Paracetamol', slug: 'paracetamol-1', drug_class: 'Non-opioid Analgesic & Antipyretic', indication: 'Fever, mild-to-moderate pain management' },
+  { name: 'Omeprazole', slug: 'omeprazole-2', drug_class: 'Proton Pump Inhibitor (PPI)', indication: 'GERD, Peptic Ulcer Disease, Acid Dyspepsia' },
+  { name: 'Azithromycin', slug: 'azithromycin-3', drug_class: 'Macrolide Antibacterial', indication: 'Respiratory tract infections, Skin & soft tissue infections' },
 ];
 
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDosage, setSelectedDosage] = useState('All Forms');
+  const [selectedMfg, setSelectedMfg] = useState('All Manufacturers');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/medicines?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (selectedDosage !== 'All Forms') params.set('dosage_form', selectedDosage);
+    if (selectedMfg !== 'All Manufacturers') params.set('manufacturer', selectedMfg);
+
+    router.push(`/medicines?${params.toString()}`);
+  };
+
+  const handleQuickSearch = (term: string) => {
+    router.push(`/medicines?q=${encodeURIComponent(term)}`);
   };
 
   return (
     <div>
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO & MEDICINE DISCOVERY SECTION */}
       <section style={{
         background: 'linear-gradient(180deg, #E6F0EA 0%, var(--color-warm-ivory) 100%)',
-        padding: '64px 0 80px',
+        padding: '56px 0 80px',
         borderBottom: '1px solid var(--color-border)',
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'relative'
       }}>
         <div className="container">
-          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ maxWidth: '880px', margin: '0 auto', textAlign: 'center' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '6px 14px',
+              padding: '6px 16px',
               borderRadius: 'var(--radius-full)',
               background: 'rgba(6, 78, 59, 0.08)',
               color: 'var(--color-forest-green)',
@@ -71,98 +105,171 @@ export default function HomePage() {
               marginBottom: '20px'
             }}>
               <ShieldCheck size={16} />
-              <span>Verified Clinical Database • Bangladesh Pharmaceutical Index</span>
+              <span>National Medicine Directory • Bangladesh Index</span>
             </div>
 
             <h1 style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
+              fontSize: 'clamp(2.4rem, 5vw, 3.6rem)',
               color: 'var(--color-forest-green)',
-              marginBottom: '20px',
-              letterSpacing: '-0.5px'
+              marginBottom: '18px',
+              letterSpacing: '-0.5px',
+              lineHeight: 1.15
             }}>
-              Trusted Medicine Intelligence & Modern Pharmacy Care
+              Explore 21,700+ Verified Medicines & Generic Monographs
             </h1>
 
             <p style={{
-              fontSize: '1.12rem',
+              fontSize: '1.15rem',
               color: 'var(--color-muted)',
               lineHeight: 1.6,
               marginBottom: '36px'
             }}>
-              Search through over <strong>21,000+ verified medicines</strong>, generic indications, dosages, and therapeutic guides. Powered by genuine clinical datasets and classical wellness heritage.
+              Look up active chemical generics, indications, dosage regimens, brand alternatives, and verified prices from certified pharmaceutical laboratories.
             </p>
 
-            {/* Live Search Form */}
+            {/* Medicine Discovery Search Form */}
             <form onSubmit={handleSearchSubmit} style={{
-              display: 'flex',
               background: 'var(--color-white)',
-              padding: '8px',
-              borderRadius: 'var(--radius-lg)',
+              padding: '16px',
+              borderRadius: '24px',
               boxShadow: 'var(--shadow-lg)',
-              border: '2px solid var(--color-forest-green)',
-              marginBottom: '18px'
+              border: '2px solid var(--color-border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              textAlign: 'left'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', color: 'var(--color-muted)' }}>
-                <Search size={22} />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by brand name (e.g. Napa, A-Cold, Seclo) or generic name..."
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  outline: 'none',
-                  fontSize: '1.05rem',
-                  fontFamily: 'var(--font-body)',
-                  color: 'var(--color-deep-ink)'
-                }}
-              />
-              <button type="submit" className="btn btn-primary" style={{ padding: '12px 28px' }}>
-                Search
-              </button>
-            </form>
-
-            {/* Quick search tags */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--color-muted)', fontWeight: 600 }}>Popular:</span>
-              {['A-Cold', 'Paracetamol', 'Omeprazole', 'Cloxacillin', 'Azithromycin'].map((term) => (
-                <Link
-                  key={term}
-                  href={`/medicines?q=${encodeURIComponent(term)}`}
+              {/* Primary Search Input */}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <Search size={22} color="var(--color-muted)" style={{ position: 'absolute', left: '16px' }} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by Generic (e.g. Adalimumab, Paracetamol), Brand Name, Indication, or Drug Class..."
                   style={{
-                    color: 'var(--color-forest-green)',
-                    background: 'var(--color-soft-sage)',
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.8rem',
-                    fontWeight: 600
+                    width: '100%',
+                    height: '52px',
+                    padding: '0 16px 0 52px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '16px',
+                    fontSize: '1.02rem',
+                    outline: 'none',
+                    background: 'var(--color-warm-ivory)'
+                  }}
+                />
+              </div>
+
+              {/* Filters & Submit Row */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '10px',
+                alignItems: 'center'
+              }}>
+                {/* Dosage Form Filter */}
+                <select
+                  value={selectedDosage}
+                  onChange={(e) => setSelectedDosage(e.target.value)}
+                  style={{
+                    height: '44px',
+                    padding: '0 12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.88rem',
+                    background: 'var(--color-white)',
+                    color: 'var(--color-deep-ink)'
                   }}
                 >
-                  {term}
-                </Link>
-              ))}
-            </div>
+                  <option value="All Forms">All Dosage Forms</option>
+                  <option value="Tablet">Tablets</option>
+                  <option value="Capsule">Capsules</option>
+                  <option value="Syrup">Syrups / Oral Liquids</option>
+                  <option value="Injection">Injectables</option>
+                  <option value="Drops">Eye / Nasal Drops</option>
+                  <option value="Cream">Creams & Ointments</option>
+                  <option value="Inhaler">Inhalers & Sprays</option>
+                </select>
+
+                {/* Manufacturer Filter */}
+                <select
+                  value={selectedMfg}
+                  onChange={(e) => setSelectedMfg(e.target.value)}
+                  style={{
+                    height: '44px',
+                    padding: '0 12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.88rem',
+                    background: 'var(--color-white)',
+                    color: 'var(--color-deep-ink)'
+                  }}
+                >
+                  <option value="All Manufacturers">All Top Manufacturers</option>
+                  {filterOptions.manufacturers.slice(0, 30).map((mfg) => (
+                    <option key={mfg} value={mfg}>{mfg}</option>
+                  ))}
+                </select>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.98rem' }}
+                >
+                  <Search size={18} />
+                  <span>Search Directory</span>
+                </button>
+              </div>
+
+              {/* Quick Search Suggestions */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)', fontWeight: 600 }}>Popular:</span>
+                {popularSearches.map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => handleQuickSearch(term)}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-full)',
+                      padding: '3px 10px',
+                      fontSize: '0.78rem',
+                      color: 'var(--color-forest-green)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      transition: 'background 150ms ease'
+                    }}
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* 2. CATEGORY SHORTCUTS */}
-      <section style={{ padding: '60px 0' }}>
+      {/* 2. DOSAGE CATEGORIES SHORTCUTS */}
+      <section style={{ padding: '64px 0', borderBottom: '1px solid var(--color-border)' }}>
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
             <div>
-              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Catalog Navigation</span>
-              <h2 style={{ fontSize: '1.85rem' }}>Dosage Form Categories</h2>
+              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Categorized Formulations</span>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-forest-green)' }}>Browse by Pharmaceutical Form</h2>
             </div>
             <Link href="/medicines" className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>View All 112 Forms</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="grid-3" style={{ gap: '20px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: '16px'
+          }}>
             {categories.map((cat) => {
               const Icon = cat.icon;
               return (
@@ -171,33 +278,32 @@ export default function HomePage() {
                   href={`/medicines?dosage_form=${cat.slug}`}
                   className="card"
                   style={{
+                    padding: '24px 20px',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '16px',
-                    padding: '20px',
-                    transition: 'all 200ms ease'
+                    textAlign: 'center',
+                    gap: '12px',
+                    textDecoration: 'none',
+                    background: 'var(--color-white)',
+                    transition: 'transform 150ms ease, box-shadow 150ms ease'
                   }}
                 >
                   <div style={{
-                    width: '54px',
-                    height: '54px',
-                    borderRadius: '12px',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
                     background: cat.color,
-                    color: cat.text,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    color: cat.text
                   }}>
-                    <Icon size={26} />
+                    <Icon size={26} strokeWidth={2} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'var(--color-forest-green)' }}>
-                      {cat.name}
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
-                      {cat.count}
-                    </p>
+                    <h3 style={{ fontSize: '1.02rem', fontWeight: 700, marginBottom: '2px', color: 'var(--color-forest-green)' }}>{cat.name}</h3>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{cat.count}</span>
                   </div>
                 </Link>
               );
@@ -206,24 +312,95 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. FEATURED AUTHENTIC MEDICINES */}
-      <section style={{ padding: '60px 0', background: 'var(--color-white)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
+      {/* 3. FEATURED GENERIC MONOGRAPHS */}
+      <section style={{ padding: '64px 0', background: 'var(--color-white)', borderBottom: '1px solid var(--color-border)' }}>
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '36px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
             <div>
-              <span className="pill pill-amber" style={{ marginBottom: '8px' }}>Directory Highlights</span>
-              <h2 style={{ fontSize: '1.85rem' }}>Essential Healthcare Formulations</h2>
-              <p style={{ fontSize: '0.95rem', color: 'var(--color-muted)' }}>
-                Directly retrieved from the verified 21,716-record national medicine dataset.
+              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Clinical Reference</span>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-forest-green)' }}>Featured Generic Monographs</h2>
+              <p style={{ color: 'var(--color-muted)', fontSize: '0.95rem' }}>
+                Access verified active ingredients with detailed indications, mechanisms, dosage instructions, and registered brand alternatives.
               </p>
             </div>
-            <Link href="/medicines" className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>Open Full Directory</span>
-              <ArrowRight size={16} />
+            <Link href="/medicines" className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Search All 1,711 Generics</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="grid-4" style={{ gap: '20px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '20px'
+          }}>
+            {featuredGenerics.map((gen) => (
+              <Link
+                key={gen.slug}
+                href={`/generics/${gen.slug}`}
+                className="card"
+                style={{
+                  padding: '24px',
+                  background: 'var(--color-warm-ivory)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '16px',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '16px'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <BookOpen size={18} color="var(--color-forest-green)" />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-forest-green)', textTransform: 'uppercase' }}>
+                      Clinical Monograph
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--color-forest-green)', marginBottom: '6px' }}>
+                    {gen.name}
+                  </h3>
+                  <span className="pill pill-outline" style={{ fontSize: '0.75rem', marginBottom: '12px', display: 'inline-block' }}>
+                    {gen.drug_class}
+                  </span>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-deep-ink)', lineHeight: 1.5, margin: 0 }}>
+                    <strong>Indications:</strong> {gen.indication}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-forest-green)', fontSize: '0.85rem', fontWeight: 600 }}>
+                  <span>Read Monograph & Brands</span>
+                  <ArrowRight size={14} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. RECENTLY INDEXED COMMERCIAL MEDICINES */}
+      <section style={{ padding: '64px 0', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
+            <div>
+              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Commercial Preparations</span>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-forest-green)' }}>Recently Indexed Commercial Medicines</h2>
+              <p style={{ color: 'var(--color-muted)', fontSize: '0.95rem' }}>
+                Browse commercial preparations with active package pricing, licensed laboratories, and linked generic profiles.
+              </p>
+            </div>
+            <Link href="/medicines" className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>View Full Directory</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '20px'
+          }}>
             {medicines.map((med) => (
               <MedicineCard key={med.id} medicine={med} />
             ))}
@@ -231,20 +408,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. APP DOWNLOAD PROMO BANNER */}
-      <section style={{ padding: '72px 0' }}>
+      {/* 5. NATIVE APP CTA */}
+      <section style={{ padding: '64px 0' }}>
         <div className="container">
-          <div style={{
-            background: 'linear-gradient(135deg, var(--color-forest-green) 0%, var(--color-evergreen) 100%)',
+          <div className="card" style={{
+            background: 'linear-gradient(135deg, var(--color-forest-green) 0%, #064E3B 100%)',
+            color: 'white',
             borderRadius: '24px',
-            padding: '48px 40px',
-            color: 'var(--color-white)',
+            padding: '56px 48px',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '32px',
-            boxShadow: 'var(--shadow-xl)'
+            gap: '32px'
           }}>
             <div style={{ maxWidth: '580px' }}>
               <div style={{
@@ -254,103 +430,56 @@ export default function HomePage() {
                 padding: '4px 12px',
                 borderRadius: 'var(--radius-full)',
                 background: 'rgba(255, 255, 255, 0.15)',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
+                fontSize: '0.82rem',
+                fontWeight: 600,
                 marginBottom: '16px'
               }}>
                 <Smartphone size={16} />
-                <span>Native Android Mobile Experience</span>
+                <span>Mobile Experience</span>
               </div>
-              <h2 style={{ fontSize: '2.2rem', color: 'var(--color-white)', marginBottom: '14px' }}>
-                Carry Asrar-e-Tibb In Your Pocket
+              <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', color: 'white', marginBottom: '16px' }}>
+                Access Medicine Intelligence Offline on Your Android Device
               </h2>
-              <p style={{ fontSize: '1.05rem', color: '#D1FAE5', lineHeight: 1.6, marginBottom: '24px' }}>
-                Access offline medicine schedules, personal health reminders, interactive symptom logs, and TibbNews articles on the go with zero ads and strict biometric security.
+              <p style={{ fontSize: '1rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.6, marginBottom: '24px' }}>
+                Install the native Asrar-e-Tibb app for instant offline search across 21,700+ medicines, dosage reminders, and symptom journaling.
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-                <Link href="/download" className="btn btn-amber btn-lg">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                <Link href="/download" className="btn btn-lg" style={{ background: 'var(--color-warm-ivory)', color: 'var(--color-forest-green)', fontWeight: 700 }}>
                   <Download size={20} />
                   <span>Download Android APK</span>
                 </Link>
-                <Link href="/medicines" className="btn btn-secondary btn-lg" style={{ background: 'transparent', color: 'white', borderColor: 'rgba(255,255,255,0.4)' }}>
-                  <span>Explore Online</span>
+                <Link href="/about" className="btn btn-secondary btn-lg" style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>
+                  <span>Learn More</span>
                 </Link>
               </div>
             </div>
 
             <div style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.08)',
               padding: '24px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              minWidth: '260px'
+              borderRadius: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              minWidth: '240px'
             }}>
-              <h4 style={{ color: 'white', fontSize: '1rem', marginBottom: '12px' }}>Release Highlights</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={16} color="var(--color-restrained-amber)" />
-                  <span>Version 1.0.0 Stable Build</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={16} color="var(--color-restrained-amber)" />
-                  <span>SHA-256 Checksum Verified</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={16} color="var(--color-restrained-amber)" />
-                  <span>21,700+ Offline Database</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={16} color="var(--color-restrained-amber)" />
-                  <span>Hardware Back & Navigation Protected</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. HEALTHCARE PILLARS */}
-      <section style={{ padding: '60px 0', borderTop: '1px solid var(--color-border)', background: 'var(--color-soft-sage)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
-            <span className="pill pill-green" style={{ marginBottom: '8px' }}>Our Standards</span>
-            <h2 style={{ fontSize: '1.85rem', marginBottom: '12px' }}>Engineered for Clinical Honesty</h2>
-            <p style={{ fontSize: '0.95rem', color: 'var(--color-muted)' }}>
-              We do not fabricate doctor reviews, stock levels, or miracle cures. Every feature reflects verified medicine science.
-            </p>
-          </div>
-
-          <div className="grid-3" style={{ gap: '24px' }}>
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-soft-sage)', color: 'var(--color-forest-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <ShieldCheck size={26} />
+              <h4 style={{ fontSize: '1.05rem', color: 'white', marginBottom: '14px', fontWeight: 700 }}>Directory Integrity</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={16} color="var(--color-fresh-green)" />
+                  <span>21,714 Verified Medicines</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={16} color="var(--color-fresh-green)" />
+                  <span>1,711 Generic Monographs</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={16} color="var(--color-fresh-green)" />
+                  <span>112 Registered Dosage Forms</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={16} color="var(--color-fresh-green)" />
+                  <span>232 Certified Manufacturers</span>
+                </div>
               </div>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Uncompromised Privacy</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                Personal medication schedules, private notes, and health conditions are protected with PostgreSQL Row Level Security. We never sell patient profiles.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#FEF3C7', color: '#92400E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <Clock size={26} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Authentic Indication Data</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                Comprehensive cross-references linking brands, active generics, strength metrics, dosage forms, and indications directly from official manufacturer registries.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '28px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#E0F2FE', color: '#0369A1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <Smartphone size={26} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Open Android Distribution</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                Direct APK releases signed and published transparently on GitHub, accompanied by cryptographic SHA-256 hashes for total patient security.
-              </p>
             </div>
           </div>
         </div>
@@ -358,4 +487,3 @@ export default function HomePage() {
     </div>
   );
 }
-
