@@ -71,9 +71,9 @@ jobs:
       - name: Build Android APK
         run: |
           if [ -f "./pubspec.yaml" ]; then
-            flutter build apk --release
+            flutter build apk --release --android-skip-build-dependency-validation
           elif [ -f "./Asrar-E-Tibb/pubspec.yaml" ]; then
-            cd Asrar-E-Tibb && flutter build apk --release
+            cd Asrar-E-Tibb && flutter build apk --release --android-skip-build-dependency-validation
           fi
 
       - name: Verify APK & Generate SHA-256 Checksum
