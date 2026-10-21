@@ -153,7 +153,7 @@ class _UserProfilePageState extends State<UserProfilePage>
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
+                            color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -323,7 +323,7 @@ class _UserProfilePageState extends State<UserProfilePage>
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -436,3 +436,4 @@ class _UserProfilePageState extends State<UserProfilePage>
     );
   }
 }
+

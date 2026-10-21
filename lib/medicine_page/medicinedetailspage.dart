@@ -163,7 +163,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 2,
                   offset: const Offset(0, 1),
                 ),
@@ -281,7 +281,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                             ? null
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
                                 ),
@@ -320,7 +320,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                           ? null
                           : [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 5,
                                 offset: const Offset(0, 3),
                               ),
@@ -360,8 +360,8 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDark
-                          ? AppThemes.primaryBlue.withOpacity(0.8)
-                          : AppThemes.primaryBlue.withOpacity(0.1),
+                          ? AppThemes.primaryBlue.withValues(alpha: 0.8)
+                          : AppThemes.primaryBlue.withValues(alpha: 0.1),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 15,
                         vertical: 8,
@@ -460,8 +460,8 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.grey[800]!.withOpacity(0.5)
-                          : Colors.grey[100]!.withOpacity(0.9),
+                          ? Colors.grey[800]!.withValues(alpha: 0.5)
+                          : Colors.grey[100]!.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(12),
                       border: isDark
                           ? Border.all(color: Colors.grey[700]!)
@@ -485,3 +485,4 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
     );
   }
 }
+

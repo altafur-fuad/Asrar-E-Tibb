@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: asrar-e-tibb-api
+    runtime: docker
+    dockerfilePath: backend/api/Dockerfile
+    dockerContext: backend/api
+    plan: free
+    region: oregon
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+      - key: APK_AVAILABLE
+        value: "false"
+      - key: APK_VERSION
+        value: "1.0.0"
+      - key: APK_VERSION_CODE
+        value: "1"
+      - key: APK_RELEASE_DATE
+        value: "October 2026"
+      - key: APK_FILENAME
+        value: "Asrar-E-Tibb.apk"
+      - key: APK_DOWNLOAD_URL
+        value: "https://github.com/altafur-fuad/Asrar-E-Tibb/releases/latest/download/Asrar-E-Tibb.apk"
+      - key: APK_SHA256
+        value: "e8263faf3e06d67b1f6c83d56726611bb20c402dbcfec65a5753ef8b0b61f3ae"
+      - key: APK_FILE_SIZE_BYTES
+        value: "66060288"

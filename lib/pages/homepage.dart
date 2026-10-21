@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:asrarpages/medicine_page/medicine_list_page.dart';
 import 'package:asrarpages/pages/setting.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,9 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../app_colors.dart';
 import '../medicine_page/listpage.dart';
+import '../services/supabase_auth_helper.dart';
 import '../theme_controller.dart';
 import '../remainder_notepad/notepad_page.dart';
 import 'about_page.dart';
@@ -15,8 +18,11 @@ import '../remainder_notepad/reminder_page.dart';
 import '../farmacia/farmacia_page.dart';
 import '../tibbnews/tibbnewspage.dart';
 
+/// Main navigation shell managing the five top-level tabs:
+/// Reminder, Notepad, Home Dashboard, TibbNews, and Farmacia.
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final SupabaseAuthService? authService;
+  const HomePage({super.key, this.authService});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,70 +30,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController(initialPage: 2);
-  final PageController _carouselController = PageController();
-  int _currentPage = 0;
   int _currentIndex = 2;
-  String? userRole;
-
-  final List<String> carouselImages = [
-    'assets/image/banner1.png',
-    'assets/image/banner2.png',
-    'assets/image/banner3.png',
-    'assets/image/banner4.jpg',
-  ];
-
-  List<Map<String, dynamic>> gridItems = [
-    {'icon': Icons.medication_liquid, 'name': 'Generic'},
-    {'icon': Icons.assignment, 'name': 'Indication'},
-    {'icon': Icons.business, 'name': 'Brand Name'},
-    {'icon': Icons.medication_outlined, 'name': 'Dosage Form'},
-    {'icon': Icons.assignment, 'name': 'Manufacturer'},
-    {'icon': Icons.business, 'name': 'Drug Class'},
-    {'icon': Icons.contact_page, 'name': 'Contact Us'},
-    {'icon': Icons.info, 'name': 'About'},
-    {'icon': Icons.settings, 'name': 'Settings'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserRole();
-    _startCarouselAnimation();
-  }
-
-  Future<void> _loadUserRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString('user_role') ?? 'user';
-    setState(() {
-      userRole = role;
-      // 🟩 Add admin-only items dynamically
-      if (role == 'admin') {
-        gridItems.addAll([
-          {'icon': Icons.people_alt, 'name': 'User Info'},
-          {'icon': Icons.medical_services, 'name': 'Medicine Upgrade'},
-        ]);
-      }
-    });
-  }
-
-  void _startCarouselAnimation() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        int nextPage = (_currentPage + 1) % carouselImages.length;
-        _carouselController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 60),
-          curve: Curves.easeInOut,
-        );
-        _startCarouselAnimation();
-      }
-    });
-  }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _carouselController.dispose();
     super.dispose();
   }
 
@@ -100,8 +47,135 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 🔹 Main Home UI
-  Widget _buildHomePage(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    final items = <Widget>[
+      const Icon(Icons.alarm, size: 28),
+      const Icon(Icons.note, size: 28),
+      const Icon(Icons.home, size: 28),
+      const Icon(Icons.article, size: 28),
+      const Icon(Icons.store, size: 28),
+    ];
+
+    return Scaffold(
+      extendBody: true,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) => setState(() => _currentIndex = index),
+        children: [
+          const ReminderPage(),
+          const NotepadPage(),
+          HomePageInternal(authService: widget.authService),
+          const Tibbnewspage(),
+          const FarmaciaPage(),
+        ],
+      ),
+      bottomNavigationBar: CurvedNavigationBar(
+        backgroundColor: Colors.transparent,
+        color: Theme.of(context).colorScheme.primary,
+        buttonBackgroundColor: Colors.transparent,
+        height: 60,
+        animationDuration: const Duration(milliseconds: 400),
+        items: items,
+        index: _currentIndex,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+/// Standalone Home Dashboard tab widget with an autonomous lifecycle.
+/// Eliminates unmounted State direct instantiations and manages its own controllers.
+class HomePageInternal extends StatefulWidget {
+  final SupabaseAuthService? authService;
+  const HomePageInternal({super.key, this.authService});
+
+  @override
+  State<HomePageInternal> createState() => _HomePageInternalState();
+}
+
+class _HomePageInternalState extends State<HomePageInternal> {
+  final PageController _carouselController = PageController();
+  int _currentPage = 0;
+  String? userRole;
+  Timer? _carouselTimer;
+
+  final List<String> carouselImages = [
+    'assets/image/banner1.png',
+    'assets/image/banner2.png',
+    'assets/image/banner3.png',
+    'assets/image/banner4.jpg',
+  ];
+
+  late final List<Map<String, dynamic>> gridItems;
+
+  @override
+  void initState() {
+    super.initState();
+    gridItems = [
+      {'icon': Icons.medication_liquid, 'name': 'Generic'},
+      {'icon': Icons.assignment, 'name': 'Indication'},
+      {'icon': Icons.business, 'name': 'Brand Name'},
+      {'icon': Icons.medication_outlined, 'name': 'Dosage Form'},
+      {'icon': Icons.assignment, 'name': 'Manufacturer'},
+      {'icon': Icons.business, 'name': 'Drug Class'},
+      {'icon': Icons.contact_page, 'name': 'Contact Us'},
+      {'icon': Icons.info, 'name': 'About'},
+      {'icon': Icons.settings, 'name': 'Settings'},
+    ];
+    _loadUserRole();
+    _startCarouselAnimation();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedRole = prefs.getString('user_role') ?? 'patient';
+
+    // Verify admin claims against authoritative server truth
+    if (cachedRole == 'admin') {
+      final authService = widget.authService ?? SupabaseAuthService();
+      final isAdmin = await authService.verifyAdminPrivileges();
+      if (!isAdmin) {
+        await prefs.setString('user_role', 'patient');
+        if (mounted) setState(() => userRole = 'patient');
+        return;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        userRole = cachedRole;
+        if (cachedRole == 'admin') {
+          gridItems.addAll([
+            {'icon': Icons.people_alt, 'name': 'User Info'},
+            {'icon': Icons.medical_services, 'name': 'Medicine Upgrade'},
+          ]);
+        }
+      });
+    }
+  }
+
+  void _startCarouselAnimation() {
+    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_carouselController.hasClients) return;
+      final nextPage = (_currentPage + 1) % carouselImages.length;
+      _carouselController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer?.cancel();
+    _carouselController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeController = Provider.of<ThemeController>(context);
     final isDark = themeController.isDark;
 
@@ -114,12 +188,12 @@ class _HomePageState extends State<HomePage> {
             Text(
               "Assalamu Alaikum",
               style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
               ),
             ),
             Text(
-              userRole == 'admin' ? "Hello Admin 😎" : "Hello  broo",
+              userRole == 'admin' ? "Administrator" : "Welcome to Asrar-e-Tibb",
               style: TextStyle(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -128,7 +202,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-
         actions: [
           PopupMenuButton<String>(
             icon: Icon(
@@ -176,65 +249,69 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          // Carousel
+          // Banner Carousel
           Container(
-            height: 240,
-            margin: const EdgeInsets.all(16),
+            height: 220,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               color: Theme.of(context).cardColor,
             ),
-            child: PageView.builder(
-              controller: _carouselController,
-              itemCount: carouselImages.length,
-              onPageChanged: (page) => setState(() => _currentPage = page),
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: AssetImage(carouselImages[index]),
-                      fit: BoxFit.cover,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: PageView.builder(
+                controller: _carouselController,
+                itemCount: carouselImages.length,
+                onPageChanged: (page) => setState(() => _currentPage = page),
+                itemBuilder: (context, index) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(carouselImages[index]),
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
-          // Indicators
+          // Carousel Indicators
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(carouselImages.length, (index) {
-              return Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
+              final isCurrent = _currentPage == index;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: isCurrent ? 20 : 7,
+                height: 7,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentPage == index
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey,
+                  borderRadius: BorderRadius.circular(4),
+                  color: isCurrent
+                      ? AppColors.brandGreen
+                      : (isDark ? Colors.white24 : AppColors.softSage),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // 🟩 Grid with admin check
+          // Categories Grid
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                childAspectRatio: 0.95,
               ),
               itemCount: gridItems.length,
               itemBuilder: (context, index) {
                 final item = gridItems[index];
                 return InkWell(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   onTap: () {
                     final itemName = item['name'];
                     if (itemName == 'Generic' ||
@@ -273,30 +350,48 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.borderSubtle.withValues(alpha: 0.1)
+                            : AppColors.borderSubtle,
+                        width: 1,
+                      ),
                       boxShadow: [
                         if (!isDark)
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                       ],
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          item['icon'],
-                          size: 36,
-                          color: Theme.of(context).iconTheme.color,
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.softSage.withValues(alpha: 0.1)
+                                : AppColors.softSage.withValues(alpha: 0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            item['icon'],
+                            size: 26,
+                            color: isDark
+                                ? AppColors.brandFresh
+                                : AppColors.brandForest,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           item['name'],
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
@@ -309,55 +404,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <Widget>[
-      const Icon(Icons.alarm, size: 30),
-      const Icon(Icons.note, size: 30),
-      const Icon(Icons.home, size: 30),
-      const Icon(Icons.article, size: 30),
-      const Icon(Icons.store, size: 30),
-    ];
-
-    return Scaffold(
-      extendBody: true,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) => setState(() => _currentIndex = index),
-        children: const [
-          ReminderPage(),
-          NotepadPage(),
-          HomePageInternal(),
-          Tibbnewspage(),
-          FarmaciaPage(),
-        ],
-      ),
-      bottomNavigationBar: CurvedNavigationBar(
-        backgroundColor: Colors.transparent,
-        color: Theme.of(context).colorScheme.primary,
-        buttonBackgroundColor: Colors.transparent,
-        height: 60,
-        animationDuration: const Duration(milliseconds: 400),
-        items: items,
-        index: _currentIndex,
-        onTap: _onItemTapped,
-      ),
-    );
-  }
-}
-
-class HomePageInternal extends StatelessWidget {
-  const HomePageInternal({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeController>(
-      builder: (context, themeController, _) {
-        return _HomePageState()._buildHomePage(context);
-      },
     );
   }
 }

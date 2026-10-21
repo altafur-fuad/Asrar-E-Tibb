@@ -1,14 +1,23 @@
-// lib/identity_login_signup/intropage.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../app_colors.dart';
 import '../pages/homepage.dart';
+import '../services/supabase_auth_helper.dart';
 import 'identityscreen.dart';
 import '../admin/adminhomepage.dart';
 
+/// Introductory splash screen that performs authoritative session validation
+/// before navigating to protected or authenticated app routes.
 class IntroPage extends StatefulWidget {
-  const IntroPage({super.key});
+  final SupabaseAuthService? authService;
+  final Duration delay;
+
+  const IntroPage({
+    super.key,
+    this.authService,
+    this.delay = const Duration(seconds: 3),
+  });
 
   @override
   State<IntroPage> createState() => _IntroPageState();
@@ -27,7 +36,7 @@ class _IntroPageState extends State<IntroPage>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: widget.delay,
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -51,56 +60,108 @@ class _IntroPageState extends State<IntroPage>
         );
 
     _controller.forward();
-    Future.delayed(const Duration(seconds: 3), _checkSession);
+    Future.delayed(widget.delay, _checkSession);
   }
 
+  /// Authoritatively validates current session with the server.
+  /// Never trusts SharedPreferences as proof of administrator privileges.
   Future<void> _checkSession() async {
-    final supabase = Supabase.instance.client;
-    final prefs = await SharedPreferences.getInstance();
+    final authService = widget.authService ?? SupabaseAuthService();
 
-    final session = supabase.auth.currentSession;
-    final role = prefs.getString('user_role');
-    final email = prefs.getString('user_email');
-    final userId = prefs.getString('user_id');
+    try {
+      final validation = await authService.validateCurrentSession();
 
-    // 1) If admin saved locally -> go to AdminHomePage
-    if (role != null && role == 'admin' && email != null) {
+      if (!mounted) return;
+
+      switch (validation.status) {
+        case AuthStatus.authenticated:
+          if (validation.isBlocked) {
+            await authService.signOutAndClearLocalState();
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
+            );
+            return;
+          }
+
+          // Authoritative server-verified admin check
+          if (validation.isAdmin) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('user_role', 'admin');
+            if (validation.email != null) {
+              await prefs.setString('user_email', validation.email!);
+            }
+            if (validation.userId != null) {
+              await prefs.setString('user_id', validation.userId!);
+            }
+
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AdminHomePage(authService: widget.authService),
+              ),
+            );
+            return;
+          }
+
+          // Normal authenticated user (Patient, Doctor, Pharmacist, Shop Owner)
+          final verifiedRole = validation.role ?? 'patient';
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_role', verifiedRole);
+          if (validation.email != null) {
+            await prefs.setString('user_email', validation.email!);
+          }
+          if (validation.userId != null) {
+            await prefs.setString('user_id', validation.userId!);
+          }
+
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomePage(authService: widget.authService),
+            ),
+          );
+          return;
+
+        case AuthStatus.blocked:
+          await authService.signOutAndClearLocalState();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account has been suspended. Please contact support.'),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
+          );
+          return;
+
+        case AuthStatus.profileNotFound:
+        case AuthStatus.unauthenticated:
+        case AuthStatus.networkError:
+          // In case of unauthenticated state, missing profile, or invalid session:
+          // Purge any stale or spoofed local credentials
+          await authService.signOutAndClearLocalState();
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
+          );
+          return;
+      }
+    } catch (_) {
+      // Safe fallback: redirect to identity selection
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const AdminHomePage()),
+        MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
       );
-      return;
     }
-
-    // 2) If Supabase session exists and userId present -> go Home
-    if (session != null && userId != null) {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-      return;
-    }
-
-    // 3) If no supabase session but local user_id exists (expired session), try silent refresh
-    if (userId != null && session == null) {
-      // We didn't save refresh token; but still allow local path to home to avoid user locked out.
-      // It's better to route to Home and let app handle missing session features.
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-      return;
-    }
-
-    // 4) Default -> Identity selection
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const IdentitySelectionScreen()),
-    );
   }
 
   @override
@@ -113,8 +174,8 @@ class _IntroPageState extends State<IntroPage>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final gradientColors = isDark
-        ? [Colors.black, Colors.blueGrey.shade900, Colors.black]
-        : [Colors.white, Colors.blue.shade50, Colors.blueGrey.shade200];
+        ? [AppColors.scaffoldDark, AppColors.surfaceDark, AppColors.scaffoldDark]
+        : [AppColors.pageIvory, AppColors.softSage, AppColors.pageIvory];
 
     return Scaffold(
       body: Container(
@@ -154,7 +215,7 @@ class _IntroPageState extends State<IntroPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _bottomIcon('assets/image/pic.png'),
+                    _bottomIcon('assets/image/medicine.png'),
                     _bottomIcon('assets/image/logo.png'),
                     _bottomIcon('assets/image/heart.png'),
                     _bottomIcon('assets/image/ll.png'),
@@ -170,8 +231,8 @@ class _IntroPageState extends State<IntroPage>
 
   Widget _bottomIcon(String path) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Image.asset(path, height: 30, width: 30, fit: BoxFit.contain),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Image.asset(path, height: 32, width: 32, fit: BoxFit.contain),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_services.dart';
+import '../app_colors.dart';
 import 'create_schedule_page.dart';
 
 class ReminderPage extends StatefulWidget {
@@ -70,10 +71,10 @@ class _ReminderPageState extends State<ReminderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = const Color(0xFF0C4B63);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = isDark ? AppColors.brandFresh : AppColors.brandForest;
 
     final bg = Theme.of(context).scaffoldBackgroundColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: bg,
@@ -150,7 +151,7 @@ class _ReminderPageState extends State<ReminderPage> {
           child: Image.asset(
             'assets/image/heart.png',
             height: 95,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
           ),
         ),
       ],
@@ -333,3 +334,4 @@ class _CurveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(_) => false;
 }
+
