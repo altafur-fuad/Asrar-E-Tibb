@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -24,11 +24,12 @@ import {
   Building2
 } from 'lucide-react';
 import { MedicineCard } from '../components/MedicineCard';
+import { Pagination } from '../components/Pagination';
 import { Medicine } from '../lib/medicines';
 import rawMedicines from '../data/medicines.json';
 import rawFilters from '../data/filters.json';
 
-const medicines: Medicine[] = rawMedicines.slice(0, 8) as Medicine[];
+const allMedicines: Medicine[] = rawMedicines as Medicine[];
 const filterOptions = rawFilters;
 
 const popularSearches = [
@@ -64,6 +65,24 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDosage, setSelectedDosage] = useState('All Forms');
   const [selectedMfg, setSelectedMfg] = useState('All Manufacturers');
+
+  // Interactive Homepage Medicine Directory Pagination
+  const [directoryPage, setDirectoryPage] = useState(1);
+  const [activeFormTab, setActiveFormTab] = useState('All Forms');
+
+  const filteredHomeMeds = useMemo(() => {
+    if (activeFormTab === 'All Forms') return allMedicines;
+    return allMedicines.filter(
+      (m) => m.dosage_form && m.dosage_form.toLowerCase().includes(activeFormTab.toLowerCase())
+    );
+  }, [activeFormTab]);
+
+  const itemsPerPage = 12;
+  const totalHomePages = Math.ceil(filteredHomeMeds.length / itemsPerPage);
+  const currentHomeMeds = filteredHomeMeds.slice(
+    (directoryPage - 1) * itemsPerPage,
+    directoryPage * itemsPerPage
+  );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -379,32 +398,79 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. RECENTLY INDEXED COMMERCIAL MEDICINES */}
-      <section style={{ padding: '64px 0', borderBottom: '1px solid var(--color-border)' }}>
+      {/* 4. COMMERCIAL MEDICINES DIRECTORY & NUMBERED PAGINATION */}
+      <section id="directory" style={{ padding: '64px 0', borderBottom: '1px solid var(--color-border)' }}>
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Commercial Preparations</span>
-              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-forest-green)' }}>Recently Indexed Commercial Medicines</h2>
+              <span className="pill pill-green" style={{ marginBottom: '8px' }}>Commercial Directory</span>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-forest-green)' }}>Browse Commercial Medicines</h2>
               <p style={{ color: 'var(--color-muted)', fontSize: '0.95rem' }}>
-                Browse commercial preparations with active package pricing, licensed laboratories, and linked generic profiles.
+                Showing page {directoryPage} of {totalHomePages} ({filteredHomeMeds.length} commercial preparations in directory).
               </p>
             </div>
             <Link href="/medicines" className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>View Full Directory</span>
+              <span>Advanced Filters</span>
               <ArrowRight size={14} />
             </Link>
           </div>
 
+          {/* Quick Dosage Form Filter Tabs */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '28px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-muted)', marginRight: '6px' }}>
+              Filter Form:
+            </span>
+            {['All Forms', 'Tablet', 'Capsule', 'Syrup', 'Injection', 'Suspension', 'Drops', 'Cream'].map((form) => {
+              const isSelected = activeFormTab === form;
+              return (
+                <button
+                  key={form}
+                  type="button"
+                  onClick={() => {
+                    setActiveFormTab(form);
+                    setDirectoryPage(1);
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 150ms ease',
+                    background: isSelected ? 'var(--color-forest-green)' : 'var(--color-white)',
+                    color: isSelected ? 'white' : 'var(--color-deep-ink)',
+                    border: `1px solid ${isSelected ? 'var(--color-forest-green)' : 'var(--color-border)'}`,
+                    boxShadow: isSelected ? '0 2px 4px rgba(6, 78, 59, 0.15)' : 'none'
+                  }}
+                >
+                  {form}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Medicine Cards Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: '20px'
+            gap: '20px',
+            marginBottom: '16px'
           }}>
-            {medicines.map((med) => (
+            {currentHomeMeds.map((med) => (
               <MedicineCard key={med.id} medicine={med} />
             ))}
           </div>
+
+          {/* Numbered Pagination: 1, 2, 3, 4, 5, 6... */}
+          <Pagination
+            currentPage={directoryPage}
+            totalPages={totalHomePages}
+            onPageChange={(p) => {
+              setDirectoryPage(p);
+              const el = document.getElementById('directory');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
         </div>
       </section>
 

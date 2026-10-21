@@ -17,6 +17,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { MedicineCard } from '../../components/MedicineCard';
+import { Pagination } from '../../components/Pagination';
 import { Medicine } from '../../lib/medicines';
 import rawMedicines from '../../data/medicines.json';
 import rawFilters from '../../data/filters.json';
@@ -387,46 +388,15 @@ function MedicineDirectoryContent() {
           </div>
         )}
 
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            marginTop: '36px'
-          }}>
-            <button
-              onClick={() => {
-                setCurrentPage((p) => Math.max(p - 1, 1));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={currentPage === 1}
-              className="btn btn-secondary btn-sm"
-              style={{ opacity: currentPage === 1 ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-            >
-              <ChevronLeft size={16} />
-              <span>Previous</span>
-            </button>
-
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-forest-green)', padding: '0 12px' }}>
-              {currentPage} / {totalPages}
-            </span>
-
-            <button
-              onClick={() => {
-                setCurrentPage((p) => Math.min(p + 1, totalPages));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={currentPage === totalPages}
-              className="btn btn-secondary btn-sm"
-              style={{ opacity: currentPage === totalPages ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-            >
-              <span>Next</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
+        {/* Numbered Pagination Controls */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(p) => {
+            setCurrentPage(p);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
       </div>
     </div>
   );
