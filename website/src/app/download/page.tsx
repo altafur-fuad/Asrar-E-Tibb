@@ -185,15 +185,145 @@ export default function DownloadAppPage() {
                 </a>
               </div>
             </div>
+          ) : release ? (
+            <div>
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                paddingBottom: '24px',
+                borderBottom: '1px solid var(--color-border)',
+                marginBottom: '28px'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <span className="pill" style={{
+                      fontSize: '0.82rem',
+                      padding: '6px 14px',
+                      background: 'rgba(217, 119, 6, 0.12)',
+                      color: 'var(--color-restrained-amber)',
+                      fontWeight: 700
+                    }}>
+                      Version {release.version} (Build #{release.version_code})
+                    </span>
+                    <span className="pill pill-outline" style={{ fontSize: '0.78rem' }}>
+                      CI Test Artifact (Debug-Signed)
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
+                    Generated: {release.release_date} • Target: {release.min_android_version}
+                  </span>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', display: 'block' }}>Package Size</span>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-forest-green)' }}>
+                    {formatFileSize(release.file_size_bytes)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Notice */}
+              <div style={{
+                background: 'rgba(217, 119, 6, 0.08)',
+                border: '1px solid rgba(217, 119, 6, 0.3)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px 20px',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px'
+              }}>
+                <AlertTriangle size={20} color="var(--color-restrained-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', color: 'var(--color-deep-ink)', marginBottom: '4px', fontWeight: 700 }}>
+                    Official Production Release Pending Security Review
+                  </h4>
+                  <p style={{ fontSize: '0.88rem', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
+                    A cloud-verified APK test artifact is available from GitHub Actions CI (Run #39611963159). Direct public production downloads will be enabled once the Supabase staging security sign-off is completed and the release is signed with the official production keystore.
+                  </p>
+                </div>
+              </div>
+
+              {/* Release Notes */}
+              <div style={{ marginBottom: '28px' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Build Notes</h3>
+                <p style={{ fontSize: '0.95rem', color: 'var(--color-deep-ink)', lineHeight: 1.6 }}>
+                  {release.release_notes}
+                </p>
+              </div>
+
+              {/* SHA-256 Checksum Box */}
+              <div style={{
+                background: 'var(--color-warm-ivory)',
+                padding: '18px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                marginBottom: '32px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-forest-green)' }}>
+                    <FileCheck size={16} />
+                    <span>Cryptographic Verification (SHA-256 Checksum):</span>
+                  </div>
+                  <button
+                    onClick={copyChecksum}
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                  >
+                    {copied ? <Check size={14} color="green" /> : <Copy size={14} />}
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+                <code style={{
+                  fontFamily: 'monospace',
+                  fontSize: '0.8rem',
+                  color: 'var(--color-muted)',
+                  wordBreak: 'break-all',
+                  display: 'block'
+                }}>
+                  {release.sha256_checksum}
+                </code>
+              </div>
+
+              {/* Download Buttons */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+                {release.artifact_download_url && (
+                  <a
+                    href={release.artifact_download_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary btn-lg"
+                    style={{ flex: 1, minWidth: '240px' }}
+                  >
+                    <Download size={20} />
+                    <span>Download CI Test Artifact (GitHub Actions)</span>
+                  </a>
+                )}
+
+                <a
+                  href={release.fallback_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-lg"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>View GitHub Releases</span>
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+            </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <AlertTriangle size={48} color="var(--color-restrained-amber)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Official Release Published Yet</h3>
+              <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Release Information Available</h3>
               <p style={{ color: 'var(--color-muted)', fontSize: '0.95rem', marginBottom: '24px', maxWidth: '520px', margin: '0 auto 24px' }}>
-                An official production APK has not yet been attached to a GitHub Release. You can monitor the repository releases page for new tags.
+                Please monitor the GitHub repository for updates and release tags.
               </p>
               <a
-                href={release?.fallback_url || 'https://github.com/altafur-fuad/Asrar-E-Tibb/releases'}
+                href="https://github.com/altafur-fuad/Asrar-E-Tibb/releases"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary"

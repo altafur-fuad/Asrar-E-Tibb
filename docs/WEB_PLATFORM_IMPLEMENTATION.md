@@ -93,14 +93,14 @@ Lightweight HTTP 200 health check endpoint used by Render and container orchestr
 Returns typed release metadata:
 ```json
 {
-  "is_available": true,
+  "is_available": false,
   "version": "1.0.0",
-  "release_date": "2026-10-21",
+  "release_date": "October 2026",
   "apk_filename": "Asrar-E-Tibb.apk",
   "download_url": "https://github.com/altafur-fuad/Asrar-E-Tibb/releases/latest/download/Asrar-E-Tibb.apk",
-  "sha256_checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "file_size_bytes": null,
-  "release_notes": "Official release of Asrar-e-Tibb Android Application with modernized navigation and security fixes."
+  "sha256_checksum": "e8263faf3e06d67b1f6c83d56726611bb20c402dbcfec65a5753ef8b0b61f3ae",
+  "file_size_bytes": 66060288,
+  "release_notes": "Cloud CI test build artifact from GitHub Actions run #39611963159. Modernized UI, 21,700+ medicine directory, and hardware back-navigation fixes."
 }
 ```
 

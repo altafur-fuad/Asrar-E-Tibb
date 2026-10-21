@@ -15,7 +15,7 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: "*"
       - key: APK_AVAILABLE
-        value: "true"
+        value: "false"
       - key: APK_VERSION
         value: "1.0.0"
       - key: APK_VERSION_CODE
@@ -27,6 +27,6 @@ services:
       - key: APK_DOWNLOAD_URL
         value: "https://github.com/altafur-fuad/Asrar-E-Tibb/releases/latest/download/Asrar-E-Tibb.apk"
       - key: APK_SHA256
-        value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        value: "e8263faf3e06d67b1f6c83d56726611bb20c402dbcfec65a5753ef8b0b61f3ae"
       - key: APK_FILE_SIZE_BYTES
-        value: "28450120"
+        value: "66060288"
