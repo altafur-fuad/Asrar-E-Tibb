@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+    branches:
+      - 'feat/**'
   workflow_dispatch:
     inputs:
       version_name:
@@ -44,7 +46,6 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
           channel: 'stable'
           cache: true
 
@@ -102,10 +103,14 @@ jobs:
             echo "tag=v${{ github.event.inputs.version_name }}" >> $GITHUB_OUTPUT
             echo "notes=${{ github.event.inputs.release_notes }}" >> $GITHUB_OUTPUT
             echo "publish=${{ github.event.inputs.publish_release }}" >> $GITHUB_OUTPUT
-          else
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "notes=Automated release for ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "notes=Official automated release for ${{ github.ref_name }}" >> $GITHUB_OUTPUT
             echo "publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag=feat-test" >> $GITHUB_OUTPUT
+            echo "notes=Test build artifact from feature branch ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "publish=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload APK and Checksum as Workflow Artifacts
