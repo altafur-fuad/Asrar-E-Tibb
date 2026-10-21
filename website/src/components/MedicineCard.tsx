@@ -5,21 +5,7 @@ import Link from 'next/link';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { MedicineImageBadge } from './MedicineImageBadge';
 import { useCart } from '../context/CartContext';
-
-export interface Medicine {
-  id: string;
-  name: string;
-  slug: string;
-  dosage_form: string;
-  generic: string;
-  strength: string;
-  manufacturer: string;
-  price: string;
-  package_container?: string;
-  drug_class?: string;
-  indication?: string;
-  type?: string;
-}
+import { Medicine } from '../lib/medicines';
 
 interface MedicineCardProps {
   medicine: Medicine;
@@ -35,26 +21,50 @@ export function MedicineCard({ medicine, showAddToCart = true }: MedicineCardPro
       flexDirection: 'column',
       justifyContent: 'space-between',
       gap: '16px',
-      height: '100%'
+      height: '100%',
+      background: 'var(--color-white)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '20px',
+      transition: 'transform 150ms ease, box-shadow 150ms ease'
     }}>
       <div>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-          <MedicineImageBadge dosageForm={medicine.dosage_form} size="md" />
-          <span className="pill pill-outline" style={{ fontSize: '0.72rem' }}>
+          <MedicineImageBadge
+            dosageForm={medicine.dosage_form}
+            brandName={medicine.name}
+            imageUrl={medicine.image_url}
+            size="md"
+          />
+          <span className="pill pill-outline" style={{ fontSize: '0.72rem', textTransform: 'capitalize' }}>
             {medicine.dosage_form}
           </span>
         </div>
 
         <div style={{ marginTop: '16px' }}>
-          <h3 style={{ fontSize: '1.15rem', marginBottom: '4px' }}>
+          <h3 style={{ fontSize: '1.15rem', marginBottom: '4px', fontWeight: 700 }}>
             <Link href={`/medicines/${medicine.slug}`} style={{ color: 'var(--color-forest-green)' }}>
               {medicine.name}
             </Link>
           </h3>
+
+          {/* Generic Link */}
           <p style={{ fontSize: '0.88rem', color: 'var(--color-muted)', fontWeight: 500, marginBottom: '6px' }}>
-            {medicine.strength ? `${medicine.generic} (${medicine.strength})` : medicine.generic}
+            {medicine.generic_slug ? (
+              <Link
+                href={`/generics/${medicine.generic_slug}`}
+                style={{ color: 'var(--color-forest-green)', textDecoration: 'underline', textDecorationColor: 'rgba(6,78,59,0.3)' }}
+                title="View generic monograph & all brand alternatives"
+              >
+                {medicine.generic}
+              </Link>
+            ) : (
+              medicine.generic
+            )}
+            {medicine.strength && <span style={{ color: 'var(--color-deep-ink)' }}> • {medicine.strength}</span>}
           </p>
-          <p style={{ fontSize: '0.8rem', color: '#718096' }}>
+
+          <p style={{ fontSize: '0.8rem', color: '#64748B' }}>
             {medicine.manufacturer}
           </p>
         </div>
@@ -78,7 +88,7 @@ export function MedicineCard({ medicine, showAddToCart = true }: MedicineCardPro
           <Link
             href={`/medicines/${medicine.slug}`}
             className="btn btn-secondary btn-sm"
-            title="View clinical details"
+            title="View complete clinical details and alternative brands"
           >
             <ArrowRight size={16} />
           </Link>
@@ -104,3 +114,4 @@ export function MedicineCard({ medicine, showAddToCart = true }: MedicineCardPro
     </div>
   );
 }
+export type { Medicine };
