@@ -4,7 +4,7 @@
 # ==============================================================================
 
 # --- Stage 1: Build Stage ---
-FROM rust:1.80-slim-bullseye AS builder
+FROM rust:1.80-slim-bookworm AS builder
 
 WORKDIR /usr/src/app
 
@@ -30,7 +30,7 @@ COPY src ./src
 RUN touch src/main.rs && cargo build --release
 
 # --- Stage 2: Lean Runtime Stage ---
-FROM debian:bullseye-slim AS runtime
+FROM debian:bookworm-slim AS runtime
 
 WORKDIR /app
 
