@@ -4,7 +4,7 @@
 # ==============================================================================
 
 # --- Stage 1: Build Stage ---
-FROM rust:1.80-slim-bookworm AS builder
+FROM rust:1-slim-bookworm AS builder
 
 WORKDIR /usr/src/app
 
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency specifications first for layer caching
-COPY Cargo.toml ./
+COPY Cargo.toml Cargo.lock* ./
 
 # Create dummy source to cache dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs
