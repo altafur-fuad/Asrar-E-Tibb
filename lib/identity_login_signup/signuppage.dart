@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../app_colors.dart';
 import '../pages/homepage.dart';
 import '../services/supabase_auth_helper.dart';
+import '../widgets/brand_button.dart';
+import '../widgets/status_pill.dart';
 import 'loginpage.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -18,6 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final supabase = Supabase.instance.client;
   final authService = SupabaseAuthService();
 
+  final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _mobileCtrl = TextEditingController();
@@ -33,9 +37,11 @@ class _SignUpPageState extends State<SignUpPage> {
   DateTime? _dob;
 
   bool loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   late String _selectedRole;
 
-  final List<String> bloodGroups = [
+  final List<String> bloodGroups = const [
     'A+',
     'A-',
     'B+',
@@ -45,7 +51,7 @@ class _SignUpPageState extends State<SignUpPage> {
     'O+',
     'O-',
   ];
-  final List<String> genders = ['Male', 'Female', 'Other'];
+  final List<String> genders = const ['Male', 'Female', 'Other'];
 
   @override
   void initState() {
@@ -53,11 +59,25 @@ class _SignUpPageState extends State<SignUpPage> {
     _selectedRole = widget.role;
   }
 
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _mobileCtrl.dispose();
+    _specialistCtrl.dispose();
+    _licenceCtrl.dispose();
+    _workplaceCtrl.dispose();
+    _shopNameCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmPassCtrl.dispose();
+    super.dispose();
+  }
+
   bool get isAdminSignupAttempt =>
       _selectedRole.toLowerCase().trim() == "admin";
 
   String getTableName() {
-    switch (_selectedRole.toLowerCase()) {
+    switch (_selectedRole.toLowerCase().trim()) {
       case 'patient':
         return 'patients';
       case 'doctor':
@@ -72,10 +92,10 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  // --------------------------- FINAL SIGNUP LOGIC ---------------------------
+  // --------------------------- SIGNUP LOGIC ---------------------------
   Future<void> _signup() async {
     if (isAdminSignupAttempt) {
-      _snack("You cannot create an admin account manually!", err: true);
+      _snack("Administrator accounts cannot be created via public registration.", err: true);
       return;
     }
 
@@ -84,32 +104,37 @@ class _SignUpPageState extends State<SignUpPage> {
     final name = _nameCtrl.text.trim();
 
     if (email.isEmpty || password.isEmpty || name.isEmpty) {
-      _snack("Please fill all required fields", err: true);
+      _snack("Please fill in all required fields.", err: true);
+      return;
+    }
+
+    if (password.length < 6) {
+      _snack("Password must be at least 6 characters.", err: true);
       return;
     }
 
     if (password != _confirmPassCtrl.text.trim()) {
-      _snack("Passwords do not match", err: true);
+      _snack("Passwords do not match.", err: true);
       return;
     }
 
     setState(() => loading = true);
 
     try {
-      // 1. Supabase Auth user create
+      // 1. Supabase Auth user creation
       final authRes = await authService.signUp(email, password);
 
-      if (authRes.user == null) throw "Signup failed.";
+      if (authRes.user == null) throw "Registration failed.";
 
       final uid = authRes.user!.id;
       final emailVerified = authRes.user!.emailConfirmedAt != null;
 
-      // Doctor prefix
+      // Doctor title prefix
       final finalName = _selectedRole.toLowerCase() == "doctor"
           ? "Dr. $name"
           : name;
 
-      // Fix shop owner naming
+      // Fix shop owner naming convention
       String normalizedRole = _selectedRole.toLowerCase().trim();
       if (normalizedRole == "shopowner" || normalizedRole == "shop_owner") {
         normalizedRole = "shop owner";
@@ -127,7 +152,7 @@ class _SignUpPageState extends State<SignUpPage> {
         "is_blocked": false,
       });
 
-      // 3. Insert into role table
+      // 3. Insert into role-specific table
       await supabase.from(getTableName()).upsert({
         "user_id": uid,
         "auth_id": uid,
@@ -140,17 +165,18 @@ class _SignUpPageState extends State<SignUpPage> {
       await prefs.setString("user_email", email);
       await prefs.setString("user_role", normalizedRole);
 
-      _snack("Signup Successful!", color: Colors.green);
+      _snack("Account created successfully!");
 
       if (!mounted) return;
 
-      // 5. GO TO HOME
+      // 5. Navigate to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } catch (e) {
-      _snack("Signup failed: $e", err: true);
+      final msg = e.toString().replaceFirst("Exception: ", "");
+      _snack(msg, err: true);
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -158,12 +184,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
   // -------------------- ROLE SPECIFIC FIELD DATA --------------------
   Map<String, dynamic> _buildRoleData(String email) {
-    switch (_selectedRole.toLowerCase()) {
+    switch (_selectedRole.toLowerCase().trim()) {
       case 'patient':
         return {
-          "name": _nameCtrl.text,
+          "name": _nameCtrl.text.trim(),
           "email": email,
-          "mobile": _mobileCtrl.text,
+          "mobile": _mobileCtrl.text.trim(),
           "gender": _gender,
           "dob": _dob?.toIso8601String(),
           "blood_group": _bloodGroup,
@@ -171,157 +197,173 @@ class _SignUpPageState extends State<SignUpPage> {
 
       case 'doctor':
         return {
-          "name": _nameCtrl.text,
+          "name": _nameCtrl.text.trim(),
           "email": email,
-          "mobile": _mobileCtrl.text,
-          "specialist": _specialistCtrl.text,
-          "licence": _licenceCtrl.text,
-          "workplace": _workplaceCtrl.text,
+          "mobile": _mobileCtrl.text.trim(),
+          "specialist": _specialistCtrl.text.trim(),
+          "licence": _licenceCtrl.text.trim(),
+          "workplace": _workplaceCtrl.text.trim(),
           "dob": _dob?.toIso8601String(),
         };
 
       case 'pharmacist':
         return {
-          "name": _nameCtrl.text,
+          "name": _nameCtrl.text.trim(),
           "email": email,
-          "mobile": _mobileCtrl.text,
-          "workplace": _workplaceCtrl.text,
+          "mobile": _mobileCtrl.text.trim(),
+          "workplace": _workplaceCtrl.text.trim(),
           "dob": _dob?.toIso8601String(),
         };
 
       case 'shop owner':
         return {
-          "name": _nameCtrl.text,
+          "name": _nameCtrl.text.trim(),
           "email": email,
-          "mobile": _mobileCtrl.text,
-          "shop_name": _shopNameCtrl.text,
+          "mobile": _mobileCtrl.text.trim(),
+          "shop_name": _shopNameCtrl.text.trim(),
           "dob": _dob?.toIso8601String(),
         };
 
       default:
         return {
-          "name": _nameCtrl.text,
+          "name": _nameCtrl.text.trim(),
           "email": email,
-          "mobile": _mobileCtrl.text,
+          "mobile": _mobileCtrl.text.trim(),
           "dob": _dob?.toIso8601String(),
         };
     }
   }
 
-  // --------------------------- UI ---------------------------
-  void _snack(String msg, {bool err = false, Color? color}) {
+  void _snack(String msg, {bool err = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: color ?? (err ? Colors.red : Colors.black),
+        backgroundColor: err ? AppColors.danger : AppColors.brandForest,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _topHeader(),
-            Expanded(child: _formSection()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _topHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final logo = isDark
         ? 'assets/image/logo_dark1.png'
         : 'assets/image/logo_light1.png';
 
-    return SizedBox(
-      height: 260,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(painter: _SignUpCurvePainter(isDark)),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
           ),
-
-          // ---- Logo at top center ----
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 25),
-              child: Image.asset(logo, height: 130),
-            ),
-          ),
-
-          // ---- Page title ----
-          Positioned(
-            left: 20,
-            bottom: 10,
-            child: Text(
-              "Sign up as $_selectedRole",
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-    );
-  }
-
-  Widget _formSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            _field(_nameCtrl, "Name", Icons.person),
-            _field(_emailCtrl, "Email", Icons.email),
-            ..._roleSpecificFields(),
-            const SizedBox(height: 10),
-
-            ElevatedButton(
-              onPressed: loading ? null : _signup,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      "Sign Up",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-            ),
-
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LoginPage(selectedRole: _selectedRole),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(logo, height: 95),
+                const SizedBox(height: 12),
+                Text(
+                  "Create Account",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
-                );
-              },
-              child: const Text(
-                "Already have an account? Login",
-                style: TextStyle(color: Colors.blueAccent),
-              ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Registering as: ",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white60 : AppColors.mutedText,
+                      ),
+                    ),
+                    StatusPill(
+                      label: _selectedRole,
+                      variant: StatusPillVariant.sage,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                _field(_nameCtrl, "Full Name", Icons.person_outline),
+                _field(_emailCtrl, "Email Address", Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress),
+                ..._roleSpecificFields(),
+                const SizedBox(height: 12),
+
+                // Submit Button
+                BrandButton(
+                  text: "Create Account",
+                  isLoading: loading,
+                  icon: Icons.person_add_outlined,
+                  isFullWidth: true,
+                  onPressed: loading ? null : _signup,
+                ),
+                const SizedBox(height: 20),
+
+                // Link to Login
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Already have an account? ",
+                      style: TextStyle(
+                        color: isDark ? Colors.white60 : AppColors.mutedText,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                LoginPage(selectedRole: _selectedRole),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Sign In",
+                        style: TextStyle(
+                          color: AppColors.brandGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   List<Widget> _roleSpecificFields() {
-    switch (_selectedRole.toLowerCase()) {
+    switch (_selectedRole.toLowerCase().trim()) {
       case 'patient':
         return [
-          _field(_mobileCtrl, "Mobile", Icons.phone),
+          _field(_mobileCtrl, "Mobile Number", Icons.phone_outlined,
+              keyboardType: TextInputType.phone),
           _dropdownGender(),
           _dropdownBloodGroup(),
           _dobField(),
@@ -330,26 +372,29 @@ class _SignUpPageState extends State<SignUpPage> {
 
       case 'doctor':
         return [
-          _field(_mobileCtrl, "Mobile", Icons.phone),
-          _field(_specialistCtrl, "Specialist", Icons.healing),
-          _field(_licenceCtrl, "Licence No", Icons.badge),
-          _field(_workplaceCtrl, "Workplace", Icons.work),
+          _field(_mobileCtrl, "Mobile Number", Icons.phone_outlined,
+              keyboardType: TextInputType.phone),
+          _field(_specialistCtrl, "Medical Specialty", Icons.healing_outlined),
+          _field(_licenceCtrl, "BMDC Licence Number", Icons.badge_outlined),
+          _field(_workplaceCtrl, "Hospital / Clinic Workplace", Icons.work_outline),
           _dobField(),
           _passwordFields(),
         ];
 
       case 'pharmacist':
         return [
-          _field(_mobileCtrl, "Mobile", Icons.phone),
-          _field(_workplaceCtrl, "Workplace", Icons.store),
+          _field(_mobileCtrl, "Mobile Number", Icons.phone_outlined,
+              keyboardType: TextInputType.phone),
+          _field(_workplaceCtrl, "Pharmacy / Hospital Workplace", Icons.store_outlined),
           _dobField(),
           _passwordFields(),
         ];
 
       case 'shop owner':
         return [
-          _field(_mobileCtrl, "Mobile", Icons.phone),
-          _field(_shopNameCtrl, "Shop Name", Icons.storefront),
+          _field(_mobileCtrl, "Mobile Number", Icons.phone_outlined,
+              keyboardType: TextInputType.phone),
+          _field(_shopNameCtrl, "Shop / Enterprise Name", Icons.storefront_outlined),
           _dobField(),
           _passwordFields(),
         ];
@@ -362,41 +407,73 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _passwordFields() {
     return Column(
       children: [
-        _field(_passwordCtrl, "Password", Icons.lock),
-        _field(_confirmPassCtrl, "Confirm Password", Icons.lock),
+        _field(
+          _passwordCtrl,
+          "Password",
+          Icons.lock_outline,
+          obscure: _obscurePassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () {
+              setState(() => _obscurePassword = !_obscurePassword);
+            },
+          ),
+        ),
+        _field(
+          _confirmPassCtrl,
+          "Confirm Password",
+          Icons.lock_outline,
+          obscure: _obscureConfirmPassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureConfirmPassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () {
+              setState(
+                  () => _obscureConfirmPassword = !_obscureConfirmPassword);
+            },
+          ),
+        ),
       ],
     );
   }
 
   Widget _dobField() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.calendar_today),
-            const SizedBox(width: 10),
-            Expanded(
-              child: GestureDetector(
-                onTap: _pickDOB,
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: _dob == null
-                          ? ""
-                          : _dob!.toLocal().toString().split(" ")[0],
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: "Date of Birth",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+    final dateText = _dob == null
+        ? ""
+        : "${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}";
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: GestureDetector(
+        onTap: _pickDOB,
+        child: AbsorbPointer(
+          child: TextFormField(
+            controller: TextEditingController(text: dateText),
+            decoration: InputDecoration(
+              labelText: "Date of Birth",
+              hintText: "Select your date of birth",
+              prefixIcon: const Icon(Icons.calendar_today_outlined),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppColors.brandGreen,
+                  width: 2,
                 ),
               ),
             ),
-          ],
+          ),
         ),
-        const SizedBox(height: 12),
-      ],
+      ),
     );
   }
 
@@ -412,107 +489,77 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget _dropdownGender() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.people),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                initialValue: _gender,
-                hint: const Text("Select Gender"),
-                items: genders
-                    .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                    .toList(),
-                onChanged: (v) => setState(() => _gender = v),
-              ),
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: "Gender",
+          prefixIcon: const Icon(Icons.people_outline),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        const SizedBox(height: 12),
-      ],
+        initialValue: _gender,
+        hint: const Text("Select Gender"),
+        items: genders
+            .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+            .toList(),
+        onChanged: (v) => setState(() => _gender = v),
+      ),
     );
   }
 
   Widget _dropdownBloodGroup() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.bloodtype),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                initialValue: _bloodGroup,
-                hint: const Text("Select Blood Group"),
-                items: bloodGroups
-                    .map((b) => DropdownMenuItem(value: b, child: Text(b)))
-                    .toList(),
-                onChanged: (v) => setState(() => _bloodGroup = v),
-              ),
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: "Blood Group",
+          prefixIcon: const Icon(Icons.bloodtype_outlined),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        const SizedBox(height: 12),
-      ],
+        initialValue: _bloodGroup,
+        hint: const Text("Select Blood Group"),
+        items: bloodGroups
+            .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+            .toList(),
+        onChanged: (v) => setState(() => _bloodGroup = v),
+      ),
     );
   }
 
-  Widget _field(TextEditingController c, String label, IconData icon) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Icon(icon),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: c,
-                decoration: InputDecoration(
-                  labelText: label,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
+  Widget _field(
+    TextEditingController c,
+    String label,
+    IconData icon, {
+    bool obscure = false,
+    Widget? suffixIcon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: TextFormField(
+        controller: c,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          suffixIcon: suffixIcon,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: AppColors.brandGreen,
+              width: 2,
             ),
-          ],
+          ),
         ),
-        const SizedBox(height: 12),
-      ],
+      ),
     );
   }
-}
-
-// ----------------------- Curve Design -----------------------
-class _SignUpCurvePainter extends CustomPainter {
-  final bool isDark;
-
-  _SignUpCurvePainter(this.isDark);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = isDark ? Colors.white70 : Colors.black87
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.85);
-
-    path.cubicTo(
-      size.width * 0.3,
-      size.height * 0.8,
-      size.width * 0.6,
-      size.height * 0.4,
-      size.width,
-      size.height * 0.45,
-    );
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

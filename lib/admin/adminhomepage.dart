@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:asrarpages/admin/adminprofile.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:provider/provider.dart';
+import '../app_colors.dart';
+import '../pages/homepage.dart';
+import '../services/supabase_auth_helper.dart';
 import '../theme_controller.dart';
 import '../remainder_notepad/notepad_page.dart';
 import '../remainder_notepad/reminder_page.dart';
@@ -12,7 +16,8 @@ import '../medicine_page/medicine_list_page.dart';
 import '../admin/admin_panel_page.dart';
 
 class AdminHomePage extends StatefulWidget {
-  const AdminHomePage({super.key});
+  final SupabaseAuthService? authService;
+  const AdminHomePage({super.key, this.authService});
 
   @override
   State<AdminHomePage> createState() => _AdminHomePageState();
@@ -23,6 +28,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   final PageController _carouselController = PageController();
   int _currentPage = 0;
   int _currentIndex = 2;
+  Timer? _carouselTimer;
 
   final List<String> carouselImages = [
     'assets/image/banner1.png',
@@ -47,21 +53,47 @@ class _AdminHomePageState extends State<AdminHomePage> {
   @override
   void initState() {
     super.initState();
+    _verifyAdminAccess();
     _startCarouselAnimation();
   }
 
+  Future<void> _verifyAdminAccess() async {
+    final authService = widget.authService ?? SupabaseAuthService();
+    final isAdmin = await authService.verifyAdminPrivileges();
+    if (!isAdmin && mounted) {
+      _carouselTimer?.cancel();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Unauthorized: Admin privileges required."),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => HomePage(authService: widget.authService)),
+        (route) => false,
+      );
+    }
+  }
+
   void _startCarouselAnimation() {
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        int nextPage = (_currentPage + 1) % carouselImages.length;
-        _carouselController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-        _startCarouselAnimation();
-      }
+    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_carouselController.hasClients) return;
+      final nextPage = (_currentPage + 1) % carouselImages.length;
+      _carouselController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
     });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer?.cancel();
+    _pageController.dispose();
+    _carouselController.dispose();
+    super.dispose();
   }
 
   void _onItemTapped(int index) {
@@ -84,7 +116,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           children: [
             Text("Welcome back", style: TextStyle(fontSize: 14)),
             Text(
-              "Hello Admin 😎",
+              "System Administrator",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
@@ -230,7 +262,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       boxShadow: [
                         if (!isDark)
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -303,3 +335,4 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 }
+

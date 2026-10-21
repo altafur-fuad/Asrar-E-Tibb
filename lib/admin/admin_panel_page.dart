@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../app_colors.dart';
 import '../app_themes.dart';
+import '../services/supabase_auth_helper.dart';
 import '../theme_controller.dart';
 import '../tibbnews/post_details_page.dart';
 
@@ -36,8 +38,23 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   @override
   void initState() {
     super.initState();
+    _verifyAdminAccess();
     _initRealtime();
     _loadAll();
+  }
+
+  Future<void> _verifyAdminAccess() async {
+    final authService = SupabaseAuthService();
+    final isAdmin = await authService.verifyAdminPrivileges();
+    if (!isAdmin && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Unauthorized: Admin privileges required."),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -396,9 +413,9 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     }) {
       return Container(
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -415,7 +432,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
               title,
               style: TextStyle(
                 fontSize: 15,
-                color: theme.textTheme.bodyMedium!.color!.withOpacity(0.8),
+                color: theme.textTheme.bodyMedium!.color!.withValues(alpha: 0.8),
               ),
             ),
           ],
@@ -479,9 +496,9 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.12),
+              color: Colors.teal.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.teal.withOpacity(0.3)),
+              border: Border.all(color: Colors.teal.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -693,3 +710,4 @@ class AdminUserDetails extends StatelessWidget {
     );
   }
 }
+

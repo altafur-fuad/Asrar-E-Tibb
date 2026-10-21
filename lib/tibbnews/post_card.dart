@@ -9,6 +9,7 @@ import 'comments_sheet.dart';
 import 'edit_post_page.dart';
 import 'post_details_page.dart';
 import 'user_profile_page.dart';
+import '../app_colors.dart';
 
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -168,13 +169,13 @@ class _PostCardState extends State<PostCard> {
                     ),
                     margin: const EdgeInsets.only(top: 4, bottom: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.15),
+                      color: AppColors.brandForest.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       "Admin",
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: AppColors.brandForest,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -300,3 +301,4 @@ class _PostCardState extends State<PostCard> {
     );
   }
 }
+

@@ -4,12 +4,21 @@
 
 # 💊 Asrar-e-Tibb (اسرار طب — "Secrets of Medicine")
 
-**A pharmacy directory and health-community platform in one app.**
+**A comprehensive healthcare platform: Responsive Web Platform, Flutter Android App, and High-Performance Rust API.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Next.js](https://img.shields.io/badge/Website-Next.js%2014-black?logo=next.js&logoColor=white)](website/)
+[![Rust Axum](https://img.shields.io/badge/API-Rust%20Axum-dea584?logo=rust&logoColor=black)](backend/api/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web%20%7C%20Desktop-brightgreen)]()
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web%20%7C%20Cloud-brightgreen)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)]()
+
+### 🌐 Live Platform & Releases
+- 🚀 **Web Platform**: [Next.js App Router Website](website/) (Deployable to Vercel)
+- 🦀 **Rust API**: [Axum Backend Service](backend/api/) (Deployable to Render via `render.yaml`)
+- 📱 **Android APK**: [Download Latest APK & Checksum](https://github.com/altafur-fuad/Asrar-E-Tibb/releases)
+- 📚 **Architecture & Implementation**: [`docs/WEB_PLATFORM_IMPLEMENTATION.md`](docs/WEB_PLATFORM_IMPLEMENTATION.md)
+- 📊 **Deployment Status & Evidence**: [`docs/DEPLOYMENT_STATUS.md`](docs/DEPLOYMENT_STATUS.md)
 
 </div>
 
@@ -17,9 +26,11 @@
 
 ## 📖 Overview
 
-**Asrar-e-Tibb** combines two apps into one: a **medicine/pharmacy marketplace ("Farmacia")** and a **Facebook-style health social network ("TibbNews")**, all powered by a real backend on **Supabase** (Postgres + Auth + Storage + Realtime).
-
-It's built for a community where people can browse medicines, add them to a cart and checkout, set personal medicine reminders, and also share and discuss health information through posts, likes, and comments — moderated by a full-featured admin panel.
+**Asrar-e-Tibb** is an integrated healthcare ecosystem combining a **modern responsive web platform**, a **native Android mobile application**, and a **high-performance Rust Axum API**:
+1. **Responsive Web Platform (`website/`)**: Complete digital healthcare storefront, clinical medicine directory with 2,900+ curated records, TibbNews editorial feed, honest consultation/OCR preview portals, and direct APK download hub.
+2. **Native Android App (`lib/`)**: Flutter app featuring personalized medicine reminders, offline/online medicine lookup, and role-verified community interaction.
+3. **Rust API Backend (`backend/api/`)**: Lean microservice providing typed release metadata, safe redirect handling (`GET /api/v1/app/android/download`), and containerized deployment on Render.
+4. **Supabase BaaS (`supabase/`)**: PostgreSQL, Auth, Storage, and Realtime with hardened RLS security migrations.
 
 ---
 

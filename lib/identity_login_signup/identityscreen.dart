@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../app_colors.dart';
 import '../theme_controller.dart';
+import '../widgets/brand_button.dart';
 import 'loginpage.dart';
 import 'signuppage.dart';
 
+/// Screen allowing new and returning users to select their authoritative role:
+/// Patient, Doctor, Pharmacist, or Shop Owner.
+/// Admin role is strictly excluded from public selection.
 class IdentitySelectionScreen extends StatefulWidget {
   const IdentitySelectionScreen({super.key});
 
@@ -16,18 +22,35 @@ class IdentitySelectionScreen extends StatefulWidget {
 class _IdentitySelectionScreenState extends State<IdentitySelectionScreen> {
   String? selectedIdentity;
 
-  final List<Map<String, dynamic>> identities = [
-    {'title': 'Patient', 'icon': Icons.person},
-    {'title': 'Doctor', 'icon': Icons.medical_services},
-    {'title': 'Pharmacist', 'icon': Icons.local_pharmacy},
-    {'title': 'Shop Owner', 'icon': Icons.storefront},
+  final List<Map<String, dynamic>> identities = const [
+    {
+      'title': 'Patient',
+      'icon': Icons.person_outline,
+      'subtitle': 'Reminders, notes & medication directory',
+    },
+    {
+      'title': 'Doctor',
+      'icon': Icons.medical_services_outlined,
+      'subtitle': 'Verified healthcare practice & community',
+    },
+    {
+      'title': 'Pharmacist',
+      'icon': Icons.local_pharmacy_outlined,
+      'subtitle': 'Medicine knowledge & pharmacy network',
+    },
+    {
+      'title': 'Shop Owner',
+      'icon': Icons.storefront_outlined,
+      'subtitle': 'Storefront, inventory & distribution',
+    },
   ];
 
   Future<void> _saveRoleAndNavigate(Widget page) async {
+    if (selectedIdentity == null) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_role', selectedIdentity!);
     if (!mounted) return;
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
   @override
@@ -38,12 +61,13 @@ class _IdentitySelectionScreenState extends State<IdentitySelectionScreen> {
     final logo = isDark
         ? 'assets/image/logo_dark1.png'
         : 'assets/image/logo_light1.png';
-    final selectedColor = isDark ? Colors.lightBlueAccent : Colors.blue;
+
+    final activeColor = isDark ? AppColors.brandFresh : AppColors.brandForest;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Choose Your Identity'),
+        title: const Text('Choose Your Role'),
         actions: [
           Row(
             children: [
@@ -54,6 +78,7 @@ class _IdentitySelectionScreenState extends State<IdentitySelectionScreen> {
               ),
               Switch(
                 value: isDark,
+                activeThumbColor: AppColors.brandFresh,
                 onChanged: (v) => themeController.toggleTheme(v),
               ),
               Icon(
@@ -67,111 +92,175 @@ class _IdentitySelectionScreenState extends State<IdentitySelectionScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset(logo, height: 140),
-              const SizedBox(height: 24),
-              const Text(
-                'Choose Your Identity',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  children: identities.map((identity) {
-                    final isSelected = selectedIdentity == identity['title'];
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => selectedIdentity = identity['title']);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? selectedColor.withOpacity(0.12)
-                              : Theme.of(context).cardColor,
-                          border: Border.all(
-                            color: isSelected ? selectedColor : Colors.grey,
-                            width: isSelected ? 2.5 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              identity['icon'],
-                              size: 48,
-                              color: isSelected
-                                  ? selectedColor
-                                  : Theme.of(context).iconTheme.color,
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              identity['title'],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              if (selectedIdentity != null)
-                Text(
-                  'You Selected: $selectedIdentity',
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
+              Image.asset(logo, height: 110),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: selectedIdentity == null
-                      ? null
-                      : () => _saveRoleAndNavigate(
-                          LoginPage(selectedRole: selectedIdentity!),
-                        ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedIdentity == null
-                        ? Colors.grey
-                        : selectedColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
+              Text(
+                'Welcome to Asrar-e-Tibb',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Select your role to access your personalized healthcare portal',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.white60 : AppColors.mutedText,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // 2x2 Grid of Role Cards
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: identities.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 0.95,
+                ),
+                itemBuilder: (context, index) {
+                  final identity = identities[index];
+                  final isSelected = selectedIdentity == identity['title'];
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => selectedIdentity = identity['title'] as String);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? (isDark
+                                ? AppColors.softSage.withValues(alpha: 0.12)
+                                : AppColors.softSage.withValues(alpha: 0.45))
+                            : Theme.of(context).cardColor,
+                        border: Border.all(
+                          color: isSelected
+                              ? activeColor
+                              : (isDark
+                                  ? AppColors.borderSubtle.withValues(alpha: 0.15)
+                                  : AppColors.borderSubtle),
+                          width: isSelected ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          if (isSelected)
+                            BoxShadow(
+                              color: activeColor.withValues(alpha: 0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isSelected
+                                      ? activeColor.withValues(alpha: 0.15)
+                                      : (isDark
+                                          ? Colors.white10
+                                          : AppColors.softSage.withValues(alpha: 0.5)),
+                                ),
+                                child: Icon(
+                                  identity['icon'] as IconData,
+                                  size: 32,
+                                  color: isSelected
+                                      ? activeColor
+                                      : Theme.of(context).iconTheme.color,
+                                ),
+                              ),
+                              if (isSelected)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: activeColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            identity['title'] as String,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            identity['subtitle'] as String,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? Colors.white54 : AppColors.mutedText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Action Buttons
+              BrandButton(
+                text: selectedIdentity == null
+                    ? 'Select a Role to Continue'
+                    : 'Sign In as $selectedIdentity',
+                icon: Icons.login,
+                isFullWidth: true,
+                onPressed: selectedIdentity == null
+                    ? null
+                    : () => _saveRoleAndNavigate(
+                        LoginPage(selectedRole: selectedIdentity!),
+                      ),
               ),
               const SizedBox(height: 12),
-              TextButton(
+              BrandButton(
+                text: 'Create New Account',
+                icon: Icons.person_add_outlined,
+                variant: BrandButtonVariant.outline,
+                isFullWidth: true,
                 onPressed: selectedIdentity == null
                     ? null
                     : () => _saveRoleAndNavigate(
                         SignUpPage(role: selectedIdentity!),
                       ),
-                child: Text(
-                  'New user? Create an account',
-                  style: TextStyle(color: selectedColor),
-                ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

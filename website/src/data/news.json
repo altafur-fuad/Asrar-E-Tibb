@@ -1,0 +1,52 @@
+[
+  {
+    "id": "post-1",
+    "title": "Understanding Antibiotic Stewardship in Modern Outpatient Care",
+    "summary": "Why completing full antibiotic courses and avoiding unnecessary antimicrobial prescriptions is crucial for long-term health and community resistance prevention.",
+    "author": "Dr. Tariq Rahman, Clinical Pharmacologist",
+    "category": "Pharmacology",
+    "published_at": "October 18, 2026",
+    "read_time": "4 min read",
+    "tags": ["Antibiotics", "Patient Safety", "Clinical Care"]
+  },
+  {
+    "id": "post-2",
+    "title": "Natural Hepatoprotective Formulations: Classical Tibb Perspectives",
+    "summary": "Exploring the role of traditional hepatoprotective herbs such as Silymarin and Kalmegh in supporting liver recovery alongside contemporary dietary practices.",
+    "author": "Hakim Altafur Rahman",
+    "category": "Herbal Medicine",
+    "published_at": "October 15, 2026",
+    "read_time": "5 min read",
+    "tags": ["Classical Tibb", "Herbal Wellness", "Liver Health"]
+  },
+  {
+    "id": "post-3",
+    "title": "Seasonal Bronchitis & Cold Relief: Evidence-Based Symptom Management",
+    "summary": "A practical comparison of expectorants, mucolytics, and warm herbal teas for relieving persistent seasonal coughs without overusing sedative antihistamines.",
+    "author": "Asrar-e-Tibb Medical Editorial Board",
+    "category": "Public Health",
+    "published_at": "October 12, 2026",
+    "read_time": "3 min read",
+    "tags": ["Respiratory", "Cough", "Self-Care"]
+  },
+  {
+    "id": "post-4",
+    "title": "The Pharmacist's Guide to Safe Medicine Storage in High Humidity",
+    "summary": "How humidity and tropical room temperatures affect the stability of capsules, syrups, and antibiotic suspensions, and when refrigeration is truly required.",
+    "author": "Fatima Zahra, Chief Dispensing Pharmacist",
+    "category": "Pharmacy Standards",
+    "published_at": "October 08, 2026",
+    "read_time": "6 min read",
+    "tags": ["Storage", "Capsules", "Stability"]
+  },
+  {
+    "id": "post-5",
+    "title": "Hypertension Monitoring: Why Consistency Outweighs Occasional Clinic Checks",
+    "summary": "Home blood pressure logs versus episodic clinic measurements. Recommendations for accurate readings and digital health tracking.",
+    "author": "Dr. M. Kamal Uddin, Cardiologist",
+    "category": "Cardiology",
+    "published_at": "October 03, 2026",
+    "read_time": "4 min read",
+    "tags": ["Hypertension", "Cardiology", "Prevention"]
+  }
+]

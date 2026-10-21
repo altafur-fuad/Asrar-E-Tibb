@@ -1,0 +1,32 @@
+# Reference Asset Integrity Manifest
+
+- `00_requested_docs_structure.png` — Screenshot showing the desired numbered documentation set.
+  - Size: 250613 bytes
+  - SHA-256: `c21a62ffdff7e77e4f9cc0ec569642c63714f2b2a67887d8dd5cbd4c87b728c0`
+- `01_pharmacy_reference_healthplus.jpg` — Online pharmacy landing page reference with search, categories, product cards and delivery/service highlights.
+  - Size: 171024 bytes
+  - SHA-256: `a6b68a8946b776cdc9965c2b6af49140ab579dd4e2d8f886cc26da710eccae18`
+- `02_pharmacy_reference_healthfirst.jpg` — Online pharmacy reference emphasizing a clinician hero, categories, health essentials and green palette.
+  - Size: 162058 bytes
+  - SHA-256: `7598bb45180b5d9c99868e6799ddcd5f328d56298ff2ae34e953d7a27db8574b`
+- `03_pharmacy_reference_medico.jpg` — Online pharmacy reference with dark-green hero, warm yellow accent and product/health education sections.
+  - Size: 138323 bytes
+  - SHA-256: `e84f7486d5f20ba8f2dc3c480dd00f9082404be3243051b33146a5a1fd3f4c53`
+- `04_clinic_reference_vitalcare.jpg` — Clinic/healthcare website layout reference with appointment and service panels.
+  - Size: 73014 bytes
+  - SHA-256: `7dfae228fa3f6d498e7d376a1c68e9ec992043304eb7229a16309489ce2e8150`
+- `05_pharmacy_reference_healixpharma.jpg` — Pharmacy/telehealth storefront reference with service tiles, trending products and consultation CTA.
+  - Size: 127394 bytes
+  - SHA-256: `17e98b8d59c2fb1234344c26961f5cb8f3da454743e59f4901d2279918d42a17`
+- `06_health_website_reference_longpage.jpg` — Long-form healthcare website reference showing editorial sections and service/product layout.
+  - Size: 75008 bytes
+  - SHA-256: `98d8c45d9447508e5ff6b72e966531ec52b21c6b47c64b4764726cb77caeb754`
+- `07_mobile_wellness_ui_reference.jpg` — Mobile wellness/planner interface reference; use only for UI layout ideas, not product scope.
+  - Size: 54353 bytes
+  - SHA-256: `eb71fd796d11854e734101d402264a59c1b2e225fb25a1f630ccd5a464ce026d`
+- `08_ai_health_app_ui_reference.jpg` — AI health app marketing mockup reference; AI features are not implied to be in current scope.
+  - Size: 97223 bytes
+  - SHA-256: `a0f9a3b201346d23df35531fc35430054efa88693280ebc9a16530fc50b7532c`
+- `09_medication_reminder_ui_reference.jpg` — Medication reminder mobile UI reference for schedule and completion tracking.
+  - Size: 114426 bytes
+  - SHA-256: `5fb24130ff2dcbc5604720891069dce8058aeb1b1270ef09266a2d900c2bc1ca`

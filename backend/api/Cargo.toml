@@ -1,0 +1,31 @@
+[package]
+name = "asrar-e-tibb-api"
+version = "1.0.0"
+edition = "2021"
+authors = ["Asrar-e-Tibb Engineering Team"]
+description = "Dedicated high-performance backend API for Asrar-e-Tibb healthcare & APK release services"
+
+[dependencies]
+# Web framework & async runtime
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1.39", features = ["full"] }
+
+# Serialization & Deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+url = "2.5"
+
+# Middleware & HTTP Utilities
+tower = { version = "0.4", features = ["util", "timeout"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "timeout", "compression-full"] }
+http = "1.1"
+
+# Logging & Telemetry
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+
+# Time & Utilities
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json"] }
