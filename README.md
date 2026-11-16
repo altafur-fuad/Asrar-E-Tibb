@@ -38,14 +38,13 @@
 
 *(Add your app screenshots inside `docs/screenshots/` folder)*
 
-| Intro / Onboarding | Login | Farmacia (Pharmacy) | Medicine Details |
+| Intro / Onboarding | Farmacia (Pharmacy) | Medicine Details |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/01_intro.png" width="220" alt="Intro"/> | <img src="docs/screenshots/02_login.png" width="220" alt="Login"/> | <img src="docs/screenshots/03_farmacia.png" width="220" alt="Farmacia"/> | <img src="docs/screenshots/04_medicine_details.png" width="220" alt="Medicine Details"/> |
+| <img src="docs/screenshots/01_intro.png" width="220" alt="Intro"/> | <img src="docs/screenshots/03_farmacia.png" width="220" alt="Farmacia"/> | <img src="docs/screenshots/04_medicine_details.png" width="220" alt="Medicine Details"/> |
 
-| TibbNews Feed | Post Details | Profile | Admin Panel |
+| TibbNews Feed | Post Details |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/05_tibbnews_feed.png" width="220" alt="TibbNews Feed"/> | <img src="docs/screenshots/06_post_details.png" width="220" alt="Post Details"/> | <img src="docs/screenshots/07_profile.png" width="220" alt="Profile"/> | <img src="docs/screenshots/08_admin_panel.png" width="220" alt="Admin Panel"/> |
-
+| <img src="docs/screenshots/05_tibbnews_feed.png" width="220" alt="TibbNews Feed"/> | <img src="docs/screenshots/06_post_details.png" width="220" alt="Post Details"/> |
 ---
 
 ## 🎥 Demo Video
